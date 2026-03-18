@@ -2,6 +2,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 require('module-alias')({ base: path.resolve(__dirname, '..') });
+const { Agent, setGlobalDispatcher } = require('undici');
 const cors = require('cors');
 const axios = require('axios');
 const express = require('express');
@@ -35,7 +36,15 @@ const noIndex = require('./middleware/noIndex');
 const { seedDatabase } = require('~/models');
 const routes = require('./routes');
 
-const { PORT, HOST, ALLOW_SOCIAL_LOGIN, DISABLE_COMPRESSION, TRUST_PROXY } = process.env ?? {};
+const {
+  PORT,
+  HOST,
+  ALLOW_SOCIAL_LOGIN,
+  DISABLE_COMPRESSION,
+  TRUST_PROXY,
+  UNDICI_BODY_TIMEOUT_MS,
+  UNDICI_HEADERS_TIMEOUT_MS,
+} = process.env ?? {};
 
 // Allow PORT=0 to be used for automatic free port assignment
 const port = isNaN(Number(PORT)) ? 3080 : Number(PORT);
@@ -44,7 +53,28 @@ const trusted_proxy = Number(TRUST_PROXY) || 1; /* trust first proxy by default 
 
 const app = express();
 
+const configureUndiciTimeouts = () => {
+  const bodyTimeout = Number(UNDICI_BODY_TIMEOUT_MS);
+  const headersTimeout = Number(UNDICI_HEADERS_TIMEOUT_MS);
+  const hasBodyTimeout = Number.isFinite(bodyTimeout) && bodyTimeout > 0;
+  const hasHeadersTimeout = Number.isFinite(headersTimeout) && headersTimeout > 0;
+
+  if (!hasBodyTimeout && !hasHeadersTimeout) {
+    return;
+  }
+
+  const timeoutConfig = {
+    ...(hasBodyTimeout ? { bodyTimeout } : {}),
+    ...(hasHeadersTimeout ? { headersTimeout } : {}),
+  };
+
+  setGlobalDispatcher(new Agent(timeoutConfig));
+  logger.info('[server] Configured undici global dispatcher timeout', timeoutConfig);
+};
+
 const startServer = async () => {
+  configureUndiciTimeouts();
+
   if (typeof Bun !== 'undefined') {
     axios.defaults.headers.common['Accept-Encoding'] = 'gzip';
   }
