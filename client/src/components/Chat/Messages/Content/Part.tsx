@@ -10,6 +10,8 @@ import { memo } from 'react';
 import type { TMessageContentParts, TAttachment } from 'librechat-data-provider';
 import { OpenAIImageGen, EmptyText, Reasoning, ExecuteCode, AgentUpdate, Text } from './Parts';
 import { ErrorMessage } from './MessageContent';
+import ClarificationOptions from './ClarificationOptions';
+import { extractClarificationData } from '~/utils/clarificationUtils';
 import RetrievalCall from './RetrievalCall';
 import { getCachedPreview } from '~/utils';
 import AgentHandoff from './AgentHandoff';
@@ -65,6 +67,13 @@ const Part = memo(function Part({
         )}
       </>
     );
+  } else if (part.type === ContentTypes.CLARIFICATION_OPTIONS) {
+    /* Dedicated clarification content part (direct SSE path) */
+    const clarification = (part as any)[ContentTypes.CLARIFICATION_OPTIONS];
+    if (!clarification) {
+      return null;
+    }
+    return <ClarificationOptions clarification={clarification} />;
   } else if (part.type === ContentTypes.TEXT) {
     const text = typeof part.text === 'string' ? part.text : part.text?.value;
 
@@ -89,6 +98,26 @@ const Part = memo(function Part({
         return null;
       }
     }
+
+    /* Detect embedded clarification marker from KotlerAPI text content */
+    const clarificationResult = extractClarificationData(text);
+    if (clarificationResult) {
+      return (
+        <>
+          {clarificationResult.cleanText.trim() && (
+            <Container>
+              <Text
+                text={clarificationResult.cleanText}
+                isCreatedByUser={isCreatedByUser}
+                showCursor={false}
+              />
+            </Container>
+          )}
+          <ClarificationOptions clarification={clarificationResult.clarification} />
+        </>
+      );
+    }
+
     return (
       <Container>
         <Text text={text} isCreatedByUser={isCreatedByUser} showCursor={showCursor} />

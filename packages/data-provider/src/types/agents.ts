@@ -28,6 +28,24 @@ export namespace Agents {
     };
   };
 
+  export type ClarificationOption = {
+    id: string;
+    label: string;
+    value: string | null;
+    description: string;
+  };
+
+  export type ClarificationOptionsContent = {
+    type: ContentTypes.CLARIFICATION_OPTIONS;
+    clarification_options: {
+      question: string;
+      gaps: string[];
+      options: ClarificationOption[];
+      allow_custom_input: boolean;
+      multi_select: boolean;
+    };
+  };
+
   export type MessageContentImageUrl = {
     type: ContentTypes.IMAGE_URL;
     image_url: string | { url: string; detail?: ImageDetail };
@@ -49,6 +67,7 @@ export namespace Agents {
   export type MessageContentComplex =
     | ReasoningContentText
     | AgentUpdate
+    | ClarificationOptionsContent
     | MessageContentText
     | MessageContentImageUrl
     | MessageContentVideoUrl
