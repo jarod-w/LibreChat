@@ -770,6 +770,7 @@ export type TStartupConfig = {
   serverDomain: string;
   emailLoginEnabled: boolean;
   registrationEnabled: boolean;
+  inviteCodeEnabled?: boolean;
   socialLoginEnabled: boolean;
   passwordResetEnabled: boolean;
   emailEnabled: boolean;

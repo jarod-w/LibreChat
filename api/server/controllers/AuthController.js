@@ -24,6 +24,26 @@ const registrationController = async (req, res) => {
   try {
     const response = await registerUser(req.body);
     const { status, message } = response;
+
+    // Update invite code usage count on successful registration
+    if (status === 200 && req.inviteCode) {
+      const InviteCode = require('~/models/InviteCode');
+      await InviteCode.findOneAndUpdate(
+        {
+          _id: req.inviteCode._id,
+          isActive: true,
+          $or: [
+            { maxUses: 0 },
+            { $expr: { $lt: ['$usedCount', '$maxUses'] } },
+          ],
+        },
+        {
+          $inc: { usedCount: 1 },
+          $push: { usedBy: { email: req.body.email, usedAt: new Date() } },
+        },
+      );
+    }
+
     res.status(status).send({ message });
   } catch (err) {
     logger.error('[registrationController]', err);

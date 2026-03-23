@@ -22,6 +22,7 @@ const oauth = require('./oauth');
 const files = require('./files');
 const share = require('./share');
 const tags = require('./tags');
+const inviteCodes = require('./inviteCodes');
 const auth = require('./auth');
 const keys = require('./keys');
 const user = require('./user');
@@ -55,5 +56,6 @@ module.exports = {
   assistants,
   categories,
   staticRoute,
+  inviteCodes,
   accessPermissions,
 };

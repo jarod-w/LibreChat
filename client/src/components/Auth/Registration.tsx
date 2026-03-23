@@ -73,7 +73,7 @@ const Registration: React.FC = () => {
           autoComplete={id}
           aria-label={localize(label)}
           {...register(
-            id as 'name' | 'email' | 'username' | 'password' | 'confirm_password',
+            id as 'name' | 'email' | 'username' | 'password' | 'confirm_password' | 'inviteCode',
             validation,
           )}
           aria-invalid={!!errors[id]}
@@ -127,6 +127,10 @@ const Registration: React.FC = () => {
               registerUser.mutate({ ...data, token: token ?? undefined }),
             )}
           >
+            {startupConfig?.inviteCodeEnabled &&
+              renderInput('inviteCode', 'com_auth_invite_code', 'text', {
+                required: localize('com_auth_invite_code_required'),
+              })}
             {renderInput('name', 'com_auth_full_name', 'text', {
               required: localize('com_auth_name_required'),
               minLength: {

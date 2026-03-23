@@ -5,6 +5,10 @@ function validateRegistration(req, res, next) {
     return next();
   }
 
+  if (req.inviteCode) {
+    return next();
+  }
+
   if (isEnabled(process.env.ALLOW_REGISTRATION)) {
     next();
   } else {

@@ -45,6 +45,7 @@ router.post(
   '/register',
   middleware.registerLimiter,
   middleware.checkBan,
+  middleware.checkInviteCode,
   middleware.checkInviteUser,
   middleware.validateRegistration,
   registrationController,
