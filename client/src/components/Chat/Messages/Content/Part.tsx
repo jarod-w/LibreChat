@@ -11,7 +11,9 @@ import type { TMessageContentParts, TAttachment } from 'librechat-data-provider'
 import { OpenAIImageGen, EmptyText, Reasoning, ExecuteCode, AgentUpdate, Text } from './Parts';
 import { ErrorMessage } from './MessageContent';
 import ClarificationOptions from './ClarificationOptions';
+import KotlerPendingResult from './KotlerPendingResult';
 import { extractClarificationData } from '~/utils/clarificationUtils';
+import { extractPendingData } from '~/utils/nucleantPendingUtils';
 import RetrievalCall from './RetrievalCall';
 import { getCachedPreview } from '~/utils';
 import AgentHandoff from './AgentHandoff';
@@ -97,6 +99,18 @@ const Part = memo(function Part({
       if (!isLast) {
         return null;
       }
+    }
+
+    /* Detect <nucleant:pending> marker — shows loading spinner + polls job status */
+    const pendingData = extractPendingData(text);
+    if (pendingData) {
+      return (
+        <KotlerPendingResult
+          jobId={pendingData.job_id}
+          pendingMessage={pendingData.message}
+          isCreatedByUser={isCreatedByUser}
+        />
+      );
     }
 
     /* Detect embedded clarification marker from KotlerAPI text content */

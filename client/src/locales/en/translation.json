@@ -1523,5 +1523,8 @@
   "com_ui_zoom_in": "Zoom in",
   "com_ui_zoom_level": "Zoom level",
   "com_ui_zoom_out": "Zoom out",
-  "com_user_message": "You"
+  "com_user_message": "You",
+  "com_kotler_job_pending": "Analyzing this market segment for the first time, please wait…",
+  "com_kotler_job_failed": "Analysis failed. Please re-submit your question.",
+  "com_kotler_job_expired": "Result has expired. Please re-submit your question."
 }

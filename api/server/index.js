@@ -196,6 +196,7 @@ const startServer = async () => {
 
   app.use('/api/tags', routes.tags);
   app.use('/api/mcp', routes.mcp);
+  app.use('/api/kotler', routes.kotler);
   app.use('/api/invite-codes', routes.inviteCodes);
 
   /** 404 for unmatched API routes */

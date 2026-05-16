@@ -42,6 +42,12 @@ interface ClarifyPayload {
   tentative_forced_agent?: string | null;
 }
 
+interface PendingPayload {
+  job_id: string;
+  poll_url: string;
+  message: string;
+}
+
 const formatDuration = (ms: number): string => {
   if (ms < 1000) {
     return `${ms}ms`;
@@ -85,6 +91,11 @@ const renderClarify = (p: ClarifyPayload): string => {
   return '';
 };
 
+const renderPending = (p: PendingPayload): string => {
+  const msg = (p.message || '正在首次分析该细分市场，请稍候…').trim();
+  return `\n> ⏳ ${msg}\n\n`;
+};
+
 export const preprocessNucleantMarkers = (content: string): string => {
   if (!content || content.indexOf('<nucleant:') === -1) {
     return content;
@@ -108,6 +119,8 @@ export const preprocessNucleantMarkers = (content: string): string => {
         return renderError(payload as ErrorPayload);
       case 'clarify':
         return renderClarify(payload as ClarifyPayload);
+      case 'pending':
+        return renderPending(payload as PendingPayload);
       case 'report_start':
       case 'report_end':
         return '';

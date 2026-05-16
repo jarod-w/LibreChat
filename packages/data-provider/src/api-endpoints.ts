@@ -270,6 +270,9 @@ export const agents = ({ path = '', options }: { path?: string; options?: object
 
 export const activeJobs = () => `${BASE_URL}/api/agents/chat/active`;
 
+export const kotlerJob = (jobId: string) =>
+  `${BASE_URL}/api/kotler/jobs/${encodeURIComponent(jobId)}`;
+
 export const mcp = {
   tools: `${BASE_URL}/api/mcp/tools`,
   servers: `${BASE_URL}/api/mcp/servers`,

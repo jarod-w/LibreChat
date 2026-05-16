@@ -1083,3 +1083,19 @@ export interface ActiveJobsResponse {
 export const getActiveJobs = (): Promise<ActiveJobsResponse> => {
   return request.get(endpoints.activeJobs());
 };
+
+export interface KotlerJobStatus {
+  status: 'pending' | 'done' | 'failed';
+  result?: string;
+  error?: string;
+  agent_id?: string;
+  industry_major?: string;
+  industry_mid?: string;
+  industry_minor?: string;
+  created_at?: string;
+  completed_at?: string;
+}
+
+export const getKotlerJobStatus = (jobId: string): Promise<KotlerJobStatus> => {
+  return request.get(endpoints.kotlerJob(jobId));
+};

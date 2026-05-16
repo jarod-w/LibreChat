@@ -62,6 +62,8 @@ export enum QueryKeys {
   mcpServer = 'mcpServer',
   /* Active Jobs */
   activeJobs = 'activeJobs',
+  /* Kotler Industry Cache Job */
+  kotlerJob = 'kotlerJob',
   /* Agent API Keys */
   agentApiKeys = 'agentApiKeys',
 }

@@ -29,9 +29,11 @@ const inviteCodes = require('./inviteCodes');
 const auth = require('./auth');
 const keys = require('./keys');
 const user = require('./user');
+const kotler = require('./kotler');
 const mcp = require('./mcp');
 
 module.exports = {
+  kotler,
   mcp,
   auth,
   adminAuth,
