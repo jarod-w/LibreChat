@@ -37,9 +37,17 @@ interface ErrorPayload {
   missing_fields?: string[] | null;
 }
 
+interface ClarifyQuestion {
+  field: string;
+  question: string;
+  ui_type: 'free_text' | 'single_choice' | 'multi_choice';
+  options?: string[] | null;
+}
+
 interface ClarifyPayload {
   type: 'intent' | 'fields';
   tentative_forced_agent?: string | null;
+  missing_fields?: ClarifyQuestion[] | null;
 }
 
 interface PendingPayload {
@@ -86,7 +94,16 @@ const renderClarify = (p: ClarifyPayload): string => {
     return '\n> ❓ 请选择意图后继续\n\n';
   }
   if (p.type === 'fields') {
-    return '\n> ❓ 请补充必要信息后继续\n\n';
+    const fields = p.missing_fields;
+    if (!fields || fields.length === 0) {
+      return '\n> ❓ 请补充必要信息后继续\n\n';
+    }
+    const lines = fields.map((f) => {
+      const opts =
+        f.options && f.options.length > 0 ? `（${f.options.join(' / ')}）` : '';
+      return `> · ${f.question}${opts}`;
+    });
+    return `\n> ❓ 请补充以下信息后继续\n>\n${lines.join('\n')}\n\n`;
   }
   return '';
 };
