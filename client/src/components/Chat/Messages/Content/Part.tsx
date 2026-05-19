@@ -12,7 +12,9 @@ import { OpenAIImageGen, EmptyText, Reasoning, ExecuteCode, AgentUpdate, Text } 
 import { ErrorMessage } from './MessageContent';
 import ClarificationOptions from './ClarificationOptions';
 import KotlerPendingResult from './KotlerPendingResult';
+import FieldsForm from './FieldsForm';
 import { extractClarificationData } from '~/utils/clarificationUtils';
+import { extractFieldsFormData } from '~/utils/nucleantFieldsUtils';
 import { extractPendingData } from '~/utils/nucleantPendingUtils';
 import RetrievalCall from './RetrievalCall';
 import { getCachedPreview } from '~/utils';
@@ -110,6 +112,25 @@ const Part = memo(function Part({
           pendingMessage={pendingData.message}
           isCreatedByUser={isCreatedByUser}
         />
+      );
+    }
+
+    /* Detect <nucleant:clarify type="fields"> — renders interactive FieldsForm */
+    const fieldsResult = extractFieldsFormData(text);
+    if (fieldsResult) {
+      return (
+        <>
+          {fieldsResult.cleanText.length > 0 && (
+            <Container>
+              <Text
+                text={fieldsResult.cleanText}
+                isCreatedByUser={isCreatedByUser}
+                showCursor={false}
+              />
+            </Container>
+          )}
+          <FieldsForm fields={fieldsResult.fields} />
+        </>
       );
     }
 

@@ -86,28 +86,17 @@ describe('preprocessNucleantMarkers', () => {
       expect(preprocessNucleantMarkers(content)).toContain('❓ 请选择意图后继续');
     });
 
-    it('renders fields clarify generic line when missing_fields is absent', () => {
+    it('renders fields clarify fallback line (empty missing_fields edge case)', () => {
       const content = '<nucleant:clarify>{"type":"fields"}</nucleant:clarify>';
       expect(preprocessNucleantMarkers(content)).toContain('❓ 请补充必要信息后继续');
     });
 
-    it('renders fields clarify with each question listed', () => {
+    it('fields with missing_fields still produce fallback text (FieldsForm component handles interactive rendering)', () => {
       const content =
-        '<nucleant:clarify>{"type":"fields","tentative_forced_agent":"R3","missing_fields":[{"field":"brand_name","question":"您的品牌名称？","ui_type":"free_text"},{"field":"main_competitors","question":"主要竞品品牌（多个用逗号分隔）？","ui_type":"free_text"}]}</nucleant:clarify>';
+        '<nucleant:clarify>{"type":"fields","missing_fields":[{"field":"brand_name","question":"您的品牌名称？","ui_type":"free_text"}]}</nucleant:clarify>';
       const result = preprocessNucleantMarkers(content);
-      expect(result).toContain('❓ 请补充以下信息后继续');
-      expect(result).toContain('您的品牌名称？');
-      expect(result).toContain('主要竞品品牌（多个用逗号分隔）？');
+      expect(result).toContain('❓ 请补充必要信息后继续');
       expect(result).not.toContain('<nucleant:');
-    });
-
-    it('renders single_choice fields with options', () => {
-      const content =
-        '<nucleant:clarify>{"type":"fields","missing_fields":[{"field":"brand_stage","question":"品牌当前阶段？","ui_type":"single_choice","options":["初创期（0到1）","成长期（1到10）","成熟期（10到N）"]}]}</nucleant:clarify>';
-      const result = preprocessNucleantMarkers(content);
-      expect(result).toContain('品牌当前阶段？');
-      expect(result).toContain('初创期（0到1）');
-      expect(result).toContain('成长期（1到10）');
     });
   });
 
