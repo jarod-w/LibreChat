@@ -32,6 +32,7 @@ const {
   getFiles,
 } = require('~/models');
 const { getStrategyFunctions } = require('~/server/services/Files/strategies');
+const { resolveNucleantPendingMarkers } = require('~/server/services/nucleantPending');
 const { checkBalance } = require('~/models/balanceMethods');
 const { truncateToolCallOutputs } = require('./prompts');
 const TextStream = require('./TextStream');
@@ -965,10 +966,12 @@ class BaseClient {
     }
 
     const hasAddedConvo = this.options?.req?.body?.addedConvo != null;
+    const resolvedText = await resolveNucleantPendingMarkers(message.text);
     const savedMessage = await saveMessage(
       this.options?.req,
       {
         ...message,
+        text: resolvedText,
         endpoint: this.options.endpoint,
         unfinished: false,
         user,

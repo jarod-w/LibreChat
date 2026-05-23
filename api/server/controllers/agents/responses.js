@@ -35,6 +35,7 @@ const {
   createToolEndCallback,
 } = require('~/server/controllers/agents/callbacks');
 const { loadAgentTools, loadToolsForExecution } = require('~/server/services/ToolService');
+const { resolveNucleantPendingMarkers } = require('~/server/services/nucleantPending');
 const { findAccessibleResources } = require('~/server/services/PermissionService');
 const { getConvoFiles, saveConvo, getConvo } = require('~/models/Conversation');
 const { spendTokens, spendStructuredTokens } = require('~/models/spendTokens');
@@ -186,6 +187,8 @@ async function saveResponseOutput(req, conversationId, responseId, response, age
     }
   }
 
+  const resolvedText = await resolveNucleantPendingMarkers(responseText);
+
   // Save the assistant message
   await db.saveMessage(
     req,
@@ -194,7 +197,7 @@ async function saveResponseOutput(req, conversationId, responseId, response, age
       conversationId,
       parentMessageId: null,
       isCreatedByUser: false,
-      text: responseText,
+      text: resolvedText,
       sender: 'Agent',
       endpoint: EModelEndpoint.agents,
       model: agentId,

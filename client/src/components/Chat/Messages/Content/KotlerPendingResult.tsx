@@ -20,13 +20,27 @@ export default function KotlerPendingResult({ jobId, pendingMessage, isCreatedBy
   const { data, error, isLoading } = useQuery<KotlerJobStatus>({
     queryKey: [QueryKeys.kotlerJob, jobId],
     queryFn: () => dataService.getKotlerJobStatus(jobId),
-    refetchInterval: (data) => {
-      const status = data?.status;
-      return status === 'pending' || status === undefined ? POLL_INTERVAL_MS : false;
+    refetchInterval: (latest, query) => {
+      if (query.state.error) {
+        return false;
+      }
+      return latest?.status === 'pending' ? POLL_INTERVAL_MS : false;
     },
     staleTime: 0,
-    retry: 2,
+    retry: 1,
   });
+
+  if (error) {
+    return (
+      <Container>
+        <Text
+          text={`> ⚠️ ${localize('com_kotler_job_expired')}`}
+          isCreatedByUser={isCreatedByUser}
+          showCursor={false}
+        />
+      </Container>
+    );
+  }
 
   if (isLoading || !data || data.status === 'pending') {
     const msg = pendingMessage || localize('com_kotler_job_pending');
@@ -40,7 +54,7 @@ export default function KotlerPendingResult({ jobId, pendingMessage, isCreatedBy
     );
   }
 
-  if (error || data.status === 'failed') {
+  if (data.status === 'failed') {
     return (
       <Container>
         <Text
