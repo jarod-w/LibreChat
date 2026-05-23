@@ -20,8 +20,8 @@ export default function KotlerPendingResult({ jobId, pendingMessage, isCreatedBy
   const { data, error, isLoading } = useQuery<KotlerJobStatus>({
     queryKey: [QueryKeys.kotlerJob, jobId],
     queryFn: () => dataService.getKotlerJobStatus(jobId),
-    refetchInterval: (query) => {
-      const status = query.state.data?.status;
+    refetchInterval: (data) => {
+      const status = data?.status;
       return status === 'pending' || status === undefined ? POLL_INTERVAL_MS : false;
     },
     staleTime: 0,
