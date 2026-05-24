@@ -15,6 +15,7 @@ import KotlerPendingResult from './KotlerPendingResult';
 import FieldsForm from './FieldsForm';
 import { extractClarificationData } from '~/utils/clarificationUtils';
 import { extractFieldsFormData } from '~/utils/nucleantFieldsUtils';
+import { extractIntentClarifyData } from '~/utils/nucleantIntentUtils';
 import { extractPendingData } from '~/utils/nucleantPendingUtils';
 import RetrievalCall from './RetrievalCall';
 import { getCachedPreview } from '~/utils';
@@ -130,6 +131,25 @@ const Part = memo(function Part({
             </Container>
           )}
           <FieldsForm fields={fieldsResult.fields} />
+        </>
+      );
+    }
+
+    /* Detect <nucleant:clarify type="intent"> — renders interactive intent picker */
+    const intentResult = extractIntentClarifyData(text);
+    if (intentResult) {
+      return (
+        <>
+          {intentResult.cleanText.length > 0 && (
+            <Container>
+              <Text
+                text={intentResult.cleanText}
+                isCreatedByUser={isCreatedByUser}
+                showCursor={false}
+              />
+            </Container>
+          )}
+          <ClarificationOptions clarification={intentResult.clarification} />
         </>
       );
     }
