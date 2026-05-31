@@ -6,6 +6,7 @@ import { getConfigDefaults, PermissionTypes, Permissions } from 'librechat-data-
 import type { ContextType } from '~/common';
 import { PresetsMenu, HeaderNewChat, OpenSidebar } from './Menus';
 import ModelSelector from './Menus/Endpoints/ModelSelector';
+import BrandProductSelector from './BrandProductSelector';
 import { useGetStartupConfig } from '~/data-provider';
 import ExportAndShareMenu from './ExportAndShareMenu';
 import BookmarkMenu from './Menus/BookmarkMenu';
@@ -70,6 +71,7 @@ function Header() {
               )}
             >
               <ModelSelector startupConfig={startupConfig} />
+              <BrandProductSelector />
               {interfaceConfig.presets === true && interfaceConfig.modelSelect && <PresetsMenu />}
               {hasAccessToBookmarks === true && <BookmarkMenu />}
               {hasAccessToMultiConvo === true && <AddMultiConvo />}
