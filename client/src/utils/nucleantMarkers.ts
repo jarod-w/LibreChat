@@ -71,9 +71,22 @@ const renderProgress = (p: ProgressPayload): string => {
   return '';
 };
 
+const ROUND_LABELS: Record<string, string> = {
+  primary_draft: '主模型起草',
+  critique_1: '独立评审 1',
+  critique_2: '独立评审 2',
+  revise: '综合修订',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  degraded: '降级处理',
+  skipped: '已跳过',
+};
+
 const renderDebate = (p: DebatePayload): string => {
-  const status = p.status && p.status !== 'ok' ? ` · ${p.status}` : '';
-  return `\n> 💭 ${p.agent} · ${p.round}${status}\n\n`;
+  const roundLabel = ROUND_LABELS[p.round] ?? p.round;
+  const statusText = p.status && p.status !== 'ok' ? ` · ${STATUS_LABELS[p.status] ?? p.status}` : '';
+  return `\n> 💭 **${p.agent}** · ${roundLabel}${statusText}\n\n`;
 };
 
 const renderError = (p: ErrorPayload): string => {

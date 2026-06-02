@@ -64,19 +64,35 @@ describe('preprocessNucleantMarkers', () => {
   });
 
   describe('debate', () => {
-    it('renders ok-status debate without trailing status', () => {
+    it('renders ok-status debate with Chinese round label, no trailing status', () => {
       const content =
         '<nucleant:debate>{"agent":"R1","round":"primary_draft","status":"ok"}</nucleant:debate>';
       const result = preprocessNucleantMarkers(content);
-      expect(result).toContain('💭 R1 · primary_draft');
+      expect(result).toContain('💭 **R1** · 主模型起草');
       expect(result).not.toContain(' · ok');
     });
 
-    it('shows degraded status', () => {
+    it('shows all four round labels in Chinese', () => {
+      const rounds = ['primary_draft', 'critique_1', 'critique_2', 'revise'];
+      const labels = ['主模型起草', '独立评审 1', '独立评审 2', '综合修订'];
+      rounds.forEach((round, i) => {
+        const content = `<nucleant:debate>{"agent":"R1","round":"${round}","status":"ok"}</nucleant:debate>`;
+        expect(preprocessNucleantMarkers(content)).toContain(labels[i]);
+      });
+    });
+
+    it('shows degraded status in Chinese', () => {
       const content =
         '<nucleant:debate>{"agent":"R1","round":"critique_1","status":"degraded"}</nucleant:debate>';
       const result = preprocessNucleantMarkers(content);
-      expect(result).toContain('💭 R1 · critique_1 · degraded');
+      expect(result).toContain('💭 **R1** · 独立评审 1 · 降级处理');
+    });
+
+    it('shows skipped status in Chinese', () => {
+      const content =
+        '<nucleant:debate>{"agent":"R2","round":"revise","status":"skipped"}</nucleant:debate>';
+      const result = preprocessNucleantMarkers(content);
+      expect(result).toContain('💭 **R2** · 综合修订 · 已跳过');
     });
   });
 
