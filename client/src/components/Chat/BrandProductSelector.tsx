@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRecoilState } from 'recoil';
 import { useLocalize } from '~/hooks';
 import { useProfileBrandsQuery, useProfileProductsQuery } from '~/data-provider/Profile';
@@ -26,7 +27,27 @@ function ChevronDown({ className }: { className?: string }) {
 export default function BrandProductSelector() {
   const localize = useLocalize();
   const [open, setOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useLayoutEffect(() => {
+    if (!open || buttonRef.current == null) {
+      return;
+    }
+    const updatePosition = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (rect) {
+        setMenuPos({ top: rect.bottom + 4, left: rect.left });
+      }
+    };
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [open]);
 
   const [activeBrandId, setActiveBrandId] = useRecoilState(brandProductStore.activeBrandId);
   const [activeBrandName, setActiveBrandName] = useRecoilState(brandProductStore.activeBrandName);
@@ -79,75 +100,80 @@ export default function BrandProductSelector() {
         <ChevronDown />
       </button>
 
-      {open && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setOpen(false)}
-            aria-hidden="true"
-          />
+      {open && menuPos != null &&
+        createPortal(
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setOpen(false)}
+              aria-hidden="true"
+            />
 
-          {/* Dropdown */}
-          <div
-            role="listbox"
-            aria-label={localize('com_ui_brand_selector')}
-            className="absolute left-0 top-full z-50 mt-1 w-64 rounded-xl border border-border-light bg-surface-secondary py-1 shadow-lg"
-          >
-            {brands.length === 0 ? (
-              <p className="px-3 py-2 text-xs text-text-secondary">
-                {localize('com_ui_no_brands')}
-              </p>
-            ) : (
-              brands.map((brand) => (
-                <div key={brand.id}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={brand.id === activeBrandId}
-                    onClick={() => selectBrand(brand)}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-surface-tertiary ${
-                      brand.id === activeBrandId ? 'text-green-500' : 'text-text-primary'
-                    }`}
-                  >
-                    <span className="font-medium">{brand.brand_name ?? `Brand ${brand.id}`}</span>
-                    {brand.is_primary && (
-                      <span className="ml-auto text-xs text-text-secondary">Primary</span>
-                    )}
-                  </button>
-
-                  {brand.id === activeBrandId && (
-                    <div className="ml-3 border-l border-border-light pl-3">
-                      {products.length === 0 ? (
-                        <p className="px-1 py-1.5 text-xs text-text-secondary">
-                          {localize('com_ui_no_products')}
-                        </p>
-                      ) : (
-                        products.map((product) => (
-                          <button
-                            key={product.id}
-                            type="button"
-                            role="option"
-                            aria-selected={product.id === activeProductId}
-                            onClick={() => selectProduct(product)}
-                            className={`flex w-full items-center gap-2 rounded px-1 py-1.5 text-left text-xs transition-colors hover:bg-surface-tertiary ${
-                              product.id === activeProductId
-                                ? 'text-green-500'
-                                : 'text-text-secondary'
-                            }`}
-                          >
-                            {product.product_name ?? `Product ${product.id}`}
-                          </button>
-                        ))
+            {/* Dropdown */}
+            <div
+              role="listbox"
+              aria-label={localize('com_ui_brand_selector')}
+              style={{ top: menuPos.top, left: menuPos.left }}
+              className="fixed z-50 w-64 rounded-xl border border-border-light bg-surface-secondary py-1 shadow-lg"
+            >
+              {brands.length === 0 ? (
+                <p className="px-3 py-2 text-xs text-text-secondary">
+                  {localize('com_ui_no_brands')}
+                </p>
+              ) : (
+                brands.map((brand) => (
+                  <div key={brand.id}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={brand.id === activeBrandId}
+                      onClick={() => selectBrand(brand)}
+                      className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-surface-tertiary ${
+                        brand.id === activeBrandId ? 'text-green-500' : 'text-text-primary'
+                      }`}
+                    >
+                      <span className="font-medium">
+                        {brand.brand_name ?? `Brand ${brand.id}`}
+                      </span>
+                      {brand.is_primary && (
+                        <span className="ml-auto text-xs text-text-secondary">Primary</span>
                       )}
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        </>
-      )}
+                    </button>
+
+                    {brand.id === activeBrandId && (
+                      <div className="ml-3 border-l border-border-light pl-3">
+                        {products.length === 0 ? (
+                          <p className="px-1 py-1.5 text-xs text-text-secondary">
+                            {localize('com_ui_no_products')}
+                          </p>
+                        ) : (
+                          products.map((product) => (
+                            <button
+                              key={product.id}
+                              type="button"
+                              role="option"
+                              aria-selected={product.id === activeProductId}
+                              onClick={() => selectProduct(product)}
+                              className={`flex w-full items-center gap-2 rounded px-1 py-1.5 text-left text-xs transition-colors hover:bg-surface-tertiary ${
+                                product.id === activeProductId
+                                  ? 'text-green-500'
+                                  : 'text-text-secondary'
+                              }`}
+                            >
+                              {product.product_name ?? `Product ${product.id}`}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }
