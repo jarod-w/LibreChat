@@ -352,6 +352,26 @@ endpoints:
       titleModel: 'mixtral-8x7b-32768'
       modelDisplayLabel: 'groq'
 
+    # KotlerAPI — 科特勒营销智能体(自建下游服务)
+    # 终端用户身份传递(见 nucleant 项目讨论纪要):
+    #   1. headers 用占位符注入当前登录用户 id → kotlerapi 读 X-LibreChat-User-Id(首选)
+    #   2. LibreChat 自动在 body 写入 user=req.user.id → kotlerapi 读 `user` 字段(兜底)
+    # 注意:绝不要把 `user` 放进 dropParams,否则兜底失效。
+    - name: 'KotlerAPI'
+      apiKey: '${KOTLER_API_KEY}'
+      # 指向 kotlerapi 服务的 /v1(LibreChat 会自动追加 /chat/completions)
+      # 例: http://localhost:8000/v1 或 http://kotlerapi:8000/v1
+      baseURL: '${KOTLER_API_BASE_URL}'
+      headers:
+        X-LibreChat-User-Id: '{{LIBRECHAT_USER_ID}}'
+        X-LibreChat-User-Email: '{{LIBRECHAT_USER_EMAIL}}'
+      models:
+        default: ['kotler-marketing-agent']
+        fetch: false
+      titleConvo: true
+      titleModel: 'kotler-marketing-agent'
+      modelDisplayLabel: 'Kotler 营销智能体'
+
     # Mistral AI Example
     - name: 'Mistral' # Unique name for the endpoint
       # For `apiKey` and `baseURL`, you can use environment variables that you define.
