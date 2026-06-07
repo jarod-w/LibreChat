@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Spinner } from '@librechat/client';
 import { useLocalize } from '~/hooks';
-import { useOnboardingMutation } from '~/data-provider/Profile';
-import type { OnboardingPayload } from '~/data-provider/Profile';
+import { useOnboardingMutation, useIndustryTaxonomyQuery } from '~/data-provider/Profile';
+import type { OnboardingPayload, IndustryTaxonomy } from '~/data-provider/Profile';
 
 type UserData = NonNullable<OnboardingPayload['user']>;
 type BrandData = NonNullable<OnboardingPayload['brand']>;
@@ -71,15 +71,60 @@ function Field({
   );
 }
 
+function SelectField({
+  label,
+  id,
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled,
+}: {
+  label: string;
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder: string;
+  disabled?: boolean;
+}) {
+  const cls =
+    'webkit-dark-styles w-full rounded-xl border border-border-light bg-surface-primary px-3.5 py-2.5 text-sm text-text-primary focus:border-green-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50';
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-sm font-medium text-text-secondary">
+        {label}
+      </label>
+      <select
+        id={id}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+        className={cls}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function UserStep({
   data,
   onChange,
+  tree,
 }: {
   data: UserData;
   onChange: (d: UserData) => void;
+  tree: IndustryTaxonomy;
 }) {
   const localize = useLocalize();
   const set = (key: keyof UserData) => (v: string) => onChange({ ...data, [key]: v });
+  const majorOptions = Object.keys(tree);
   return (
     <div className="flex flex-col gap-4">
       <Field
@@ -88,12 +133,13 @@ function UserStep({
         value={data.company_name ?? ''}
         onChange={set('company_name')}
       />
-      <Field
+      <SelectField
         id="industry_major"
         label={localize('com_onboarding_industry_major')}
         value={data.industry_major ?? ''}
         onChange={set('industry_major')}
-        placeholder="e.g. Food & Beverage"
+        options={majorOptions}
+        placeholder={localize('com_ui_select')}
       />
       <Field
         id="contact_name"
@@ -163,15 +209,23 @@ function ProductStep({
   data,
   onChange,
   error,
+  tree,
+  industryMajor,
 }: {
   data: ProductData;
   onChange: (d: ProductData) => void;
   error: string;
+  tree: IndustryTaxonomy;
+  industryMajor: string;
 }) {
   const localize = useLocalize();
   const set = (key: keyof ProductData) => (v: string) => onChange({ ...data, [key]: v });
   const setChannels = (v: string) =>
     onChange({ ...data, main_channels: v.split(',').map((s) => s.trim()).filter(Boolean) });
+  const midOptions = industryMajor ? Object.keys(tree[industryMajor] ?? {}) : [];
+  const minorOptions =
+    industryMajor && data.industry_mid ? tree[industryMajor]?.[data.industry_mid] ?? [] : [];
+  const setMid = (v: string) => onChange({ ...data, industry_mid: v, industry_minor: '' });
 
   return (
     <div className="flex flex-col gap-4">
@@ -190,17 +244,23 @@ function ProductStep({
         placeholder="e.g. SME owners, brand managers"
       />
       <div className="grid grid-cols-2 gap-4">
-        <Field
+        <SelectField
           id="industry_mid"
           label={localize('com_onboarding_industry_mid')}
           value={data.industry_mid ?? ''}
-          onChange={set('industry_mid')}
+          onChange={setMid}
+          options={midOptions}
+          disabled={midOptions.length === 0}
+          placeholder={localize('com_ui_select')}
         />
-        <Field
+        <SelectField
           id="industry_minor"
           label={localize('com_onboarding_industry_minor')}
           value={data.industry_minor ?? ''}
           onChange={set('industry_minor')}
+          options={minorOptions}
+          disabled={minorOptions.length === 0}
+          placeholder={localize('com_ui_select')}
         />
       </div>
       <Field
@@ -238,6 +298,16 @@ export default function OnboardingWizard() {
   const [productData, setProductData] = useState<ProductData>({});
   const [userFilled, setUserFilled] = useState(false);
   const [brandFilled, setBrandFilled] = useState(false);
+
+  const { data: taxonomy } = useIndustryTaxonomyQuery();
+  const tree = taxonomy ?? {};
+
+  const handleUserChange = (d: UserData) => {
+    if (d.industry_major !== userData.industry_major) {
+      setProductData((p) => ({ ...p, industry_mid: '', industry_minor: '' }));
+    }
+    setUserData(d);
+  };
 
   const onboarding = useOnboardingMutation({
     onSuccess: () => navigate('/c/new', { replace: true }),
@@ -333,12 +403,18 @@ export default function OnboardingWizard() {
 
         {/* Step content */}
         <div className="mb-8">
-          {step === 0 && <UserStep data={userData} onChange={setUserData} />}
+          {step === 0 && <UserStep data={userData} onChange={handleUserChange} tree={tree} />}
           {step === 1 && (
             <BrandStep data={brandData} onChange={setBrandData} error={fieldError} />
           )}
           {step === 2 && (
-            <ProductStep data={productData} onChange={setProductData} error={fieldError} />
+            <ProductStep
+              data={productData}
+              onChange={setProductData}
+              error={fieldError}
+              tree={tree}
+              industryMajor={userData.industry_major ?? ''}
+            />
           )}
         </div>
 

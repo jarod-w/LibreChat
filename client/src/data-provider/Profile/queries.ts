@@ -45,6 +45,9 @@ export type ProfileProduct = {
   is_primary: boolean;
 };
 
+/** 行业三级分类树：{大类: {中类: [小类, ...]}} */
+export type IndustryTaxonomy = Record<string, Record<string, string[]>>;
+
 export type OnboardingPayload = {
   user?: {
     company_name?: string;
@@ -73,6 +76,16 @@ export type OnboardingPayload = {
 
 export const PROFILE_BRANDS_KEY = 'profile-brands';
 export const PROFILE_PRODUCTS_KEY = 'profile-products';
+export const INDUSTRY_TAXONOMY_KEY = 'industry-taxonomy';
+
+export const useIndustryTaxonomyQuery = (
+  config?: UseQueryOptions<IndustryTaxonomy>,
+) =>
+  useQuery<IndustryTaxonomy>(
+    [INDUSTRY_TAXONOMY_KEY],
+    () => profileFetch<IndustryTaxonomy>('/industry-taxonomy'),
+    { staleTime: Infinity, refetchOnWindowFocus: false, ...config },
+  );
 
 export const useProfileBrandsQuery = (
   config?: UseQueryOptions<ProfileBrand[]>,
