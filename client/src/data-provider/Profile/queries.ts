@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
 
 const kotlerapiBase = (): string =>
@@ -72,8 +72,44 @@ export type OnboardingPayload = {
   };
 };
 
+export type ProfileUser = {
+  id: number;
+  company_name: string | null;
+  industry_major: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  job_title: string | null;
+};
+
+export type UserProfileInput = {
+  company_name?: string | null;
+  industry_major?: string | null;
+  contact_name?: string | null;
+  phone?: string | null;
+  job_title?: string | null;
+};
+
+export type BrandInput = {
+  brand_name?: string | null;
+  brand_tagline?: string | null;
+  brand_keywords?: string[];
+  forbidden_expressions?: string | null;
+};
+
+export type ProductInput = {
+  product_name?: string | null;
+  target_customers?: string | null;
+  industry_mid?: string | null;
+  industry_minor?: string | null;
+  marketing_pain_points?: string | null;
+  main_channels?: string[];
+  social_links?: Record<string, string>;
+  main_competitors?: string | null;
+};
+
 // ── Queries ──────────────────────────────────────────────────────────
 
+export const PROFILE_USER_KEY = 'profile-user';
 export const PROFILE_BRANDS_KEY = 'profile-brands';
 export const PROFILE_PRODUCTS_KEY = 'profile-products';
 export const INDUSTRY_TAXONOMY_KEY = 'industry-taxonomy';
@@ -106,6 +142,13 @@ export const useProfileProductsQuery = (
     { enabled: brandId != null, refetchOnWindowFocus: false, ...config },
   );
 
+export const useProfileUserQuery = (config?: UseQueryOptions<ProfileUser | null>) =>
+  useQuery<ProfileUser | null>(
+    [PROFILE_USER_KEY],
+    () => profileFetch<ProfileUser | null>('/user'),
+    { retry: false, refetchOnWindowFocus: false, ...config },
+  );
+
 // ── Mutations ────────────────────────────────────────────────────────
 
 export const useOnboardingMutation = (
@@ -119,3 +162,172 @@ export const useOnboardingMutation = (
       }),
     options,
   );
+
+export const useUpsertProfileUserMutation = (
+  options?: UseMutationOptions<ProfileUser, Error, UserProfileInput>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<ProfileUser, Error, UserProfileInput>(
+    (payload) =>
+      profileFetch<ProfileUser>('/user', { method: 'PUT', body: JSON.stringify(payload) }),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries([PROFILE_USER_KEY]);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+export const useCreateBrandMutation = (
+  options?: UseMutationOptions<ProfileBrand, Error, BrandInput>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<ProfileBrand, Error, BrandInput>(
+    (payload) =>
+      profileFetch<ProfileBrand>('/brands', { method: 'POST', body: JSON.stringify(payload) }),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries([PROFILE_BRANDS_KEY]);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+export const useUpdateBrandMutation = (
+  options?: UseMutationOptions<ProfileBrand, Error, { brandId: number; data: BrandInput }>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<ProfileBrand, Error, { brandId: number; data: BrandInput }>(
+    ({ brandId, data }) =>
+      profileFetch<ProfileBrand>(`/brands/${brandId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries([PROFILE_BRANDS_KEY]);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+export const useDeleteBrandMutation = (
+  options?: UseMutationOptions<unknown, Error, number>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<unknown, Error, number>(
+    (brandId) => profileFetch(`/brands/${brandId}`, { method: 'DELETE' }),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries([PROFILE_BRANDS_KEY]);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+export const useSetPrimaryBrandMutation = (
+  options?: UseMutationOptions<unknown, Error, number>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<unknown, Error, number>(
+    (brandId) => profileFetch(`/brands/${brandId}/set-primary`, { method: 'POST' }),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries([PROFILE_BRANDS_KEY]);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+export const useCreateProductMutation = (
+  options?: UseMutationOptions<ProfileProduct, Error, { brandId: number; data: ProductInput }>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<ProfileProduct, Error, { brandId: number; data: ProductInput }>(
+    ({ brandId, data }) =>
+      profileFetch<ProfileProduct>(`/brands/${brandId}/products`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries([PROFILE_PRODUCTS_KEY]);
+        queryClient.invalidateQueries([PROFILE_BRANDS_KEY]);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+export const useUpdateProductMutation = (
+  options?: UseMutationOptions<
+    ProfileProduct,
+    Error,
+    { brandId: number; productId: number; data: ProductInput }
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    ProfileProduct,
+    Error,
+    { brandId: number; productId: number; data: ProductInput }
+  >(
+    ({ brandId, productId, data }) =>
+      profileFetch<ProfileProduct>(`/brands/${brandId}/products/${productId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries([PROFILE_PRODUCTS_KEY]);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+export const useDeleteProductMutation = (
+  options?: UseMutationOptions<unknown, Error, { brandId: number; productId: number }>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<unknown, Error, { brandId: number; productId: number }>(
+    ({ brandId, productId }) =>
+      profileFetch(`/brands/${brandId}/products/${productId}`, { method: 'DELETE' }),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries([PROFILE_PRODUCTS_KEY]);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};
+
+export const useSetPrimaryProductMutation = (
+  options?: UseMutationOptions<unknown, Error, { brandId: number; productId: number }>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<unknown, Error, { brandId: number; productId: number }>(
+    ({ brandId, productId }) =>
+      profileFetch(`/brands/${brandId}/products/${productId}/set-primary`, { method: 'POST' }),
+    {
+      ...options,
+      onSuccess: (...args) => {
+        queryClient.invalidateQueries([PROFILE_PRODUCTS_KEY]);
+        options?.onSuccess?.(...args);
+      },
+    },
+  );
+};

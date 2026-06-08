@@ -4,6 +4,7 @@ import { Button, Spinner } from '@librechat/client';
 import { useLocalize } from '~/hooks';
 import { useOnboardingMutation, useIndustryTaxonomyQuery } from '~/data-provider/Profile';
 import type { OnboardingPayload, IndustryTaxonomy } from '~/data-provider/Profile';
+import { Field, SelectField } from './ProfileFields';
 
 type UserData = NonNullable<OnboardingPayload['user']>;
 type BrandData = NonNullable<OnboardingPayload['brand']>;
@@ -22,93 +23,6 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
           }`}
         />
       ))}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  id,
-  value,
-  onChange,
-  multiline,
-  placeholder,
-}: {
-  label: string;
-  id: string;
-  value: string;
-  onChange: (v: string) => void;
-  multiline?: boolean;
-  placeholder?: string;
-}) {
-  const cls =
-    'webkit-dark-styles w-full rounded-xl border border-border-light bg-surface-primary px-3.5 py-2.5 text-sm text-text-primary focus:border-green-500 focus:outline-none';
-  return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-sm font-medium text-text-secondary">
-        {label}
-      </label>
-      {multiline ? (
-        <textarea
-          id={id}
-          rows={3}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={`${cls} resize-none`}
-        />
-      ) : (
-        <input
-          id={id}
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={cls}
-        />
-      )}
-    </div>
-  );
-}
-
-function SelectField({
-  label,
-  id,
-  value,
-  onChange,
-  options,
-  placeholder,
-  disabled,
-}: {
-  label: string;
-  id: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-  placeholder: string;
-  disabled?: boolean;
-}) {
-  const cls =
-    'webkit-dark-styles w-full rounded-xl border border-border-light bg-surface-primary px-3.5 py-2.5 text-sm text-text-primary focus:border-green-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50';
-  return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-sm font-medium text-text-secondary">
-        {label}
-      </label>
-      <select
-        id={id}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className={cls}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
-          </option>
-        ))}
-      </select>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { SettingsTabValues } from 'librechat-data-provider';
-import { MessageSquare, Command, DollarSign } from 'lucide-react';
+import { MessageSquare, Command, DollarSign, Building2 } from 'lucide-react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import {
   GearIcon,
@@ -21,6 +21,7 @@ import {
   Data,
   Balance,
   Account,
+  Profile,
 } from './SettingsTabs';
 import usePersonalizationAccess from '~/hooks/usePersonalizationAccess';
 import { useLocalize, TranslationKeys } from '~/hooks';
@@ -45,6 +46,7 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       SettingsTabValues.DATA,
       ...(startupConfig?.balance?.enabled ? [SettingsTabValues.BALANCE] : []),
       SettingsTabValues.ACCOUNT,
+      SettingsTabValues.PROFILE,
     ];
     const currentIndex = tabs.indexOf(activeTab);
 
@@ -120,6 +122,11 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       value: SettingsTabValues.ACCOUNT,
       icon: <UserIcon />,
       label: 'com_nav_setting_account',
+    },
+    {
+      value: SettingsTabValues.PROFILE,
+      icon: <Building2 className="icon-sm" aria-hidden="true" />,
+      label: 'com_nav_setting_profile',
     },
   ];
 
@@ -250,6 +257,9 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
                     )}
                     <Tabs.Content value={SettingsTabValues.ACCOUNT} tabIndex={-1}>
                       <Account />
+                    </Tabs.Content>
+                    <Tabs.Content value={SettingsTabValues.PROFILE} tabIndex={-1}>
+                      <Profile />
                     </Tabs.Content>
                   </div>
                 </Tabs.Root>

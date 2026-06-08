@@ -1702,6 +1702,10 @@ export enum SettingsTabValues {
    * Tab for Personalization Settings
    */
   PERSONALIZATION = 'personalization',
+  /**
+   * Tab for Brand / Product Profile Settings
+   */
+  PROFILE = 'profile',
 }
 
 export enum STTProviders {
