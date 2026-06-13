@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { Button, Spinner, useToastContext } from '@librechat/client';
 import type { ProfileBrand, BrandInput, IndustryTaxonomy } from '~/data-provider/Profile';
 import {
@@ -101,6 +102,12 @@ export default function BrandsSection({
   const [editingId, setEditingId] = useState<number | 'new' | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [pendingNewProductFor, setPendingNewProductFor] = useState<number | null>(null);
+
+  const handleAddProduct = (brandId: number) => {
+    setExpandedId(brandId);
+    setPendingNewProductFor(brandId);
+  };
 
   const onError = () => showToast({ message: localize('com_profile_save_error'), status: 'error' });
   const onSaved = () => {
@@ -166,9 +173,15 @@ export default function BrandsSection({
                 <button
                   type="button"
                   onClick={() => setExpandedId(expandedId === brand.id ? null : brand.id)}
-                  className="flex-1 truncate text-left text-sm font-medium text-text-primary"
+                  aria-expanded={expandedId === brand.id}
+                  className="flex flex-1 items-center gap-1.5 truncate text-left text-sm font-medium text-text-primary"
                 >
-                  {brand.brand_name ?? `#${brand.id}`}
+                  <ChevronRight
+                    className={`size-4 shrink-0 text-text-secondary transition-transform ${
+                      expandedId === brand.id ? 'rotate-90' : ''
+                    }`}
+                  />
+                  <span className="truncate">{brand.brand_name ?? `#${brand.id}`}</span>
                 </button>
                 {brand.is_primary && (
                   <span className="text-xs text-green-500">{localize('com_profile_primary')}</span>
@@ -182,6 +195,13 @@ export default function BrandsSection({
                     {localize('com_profile_set_primary')}
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => handleAddProduct(brand.id)}
+                  className="text-xs text-green-500 hover:underline"
+                >
+                  + {localize('com_profile_add_product')}
+                </button>
                 <button
                   type="button"
                   onClick={() => setEditingId(brand.id)}
@@ -208,7 +228,13 @@ export default function BrandsSection({
                 )}
               </div>
               {expandedId === brand.id && (
-                <ProductsSection brandId={brand.id} tree={tree} industryMajor={industryMajor} />
+                <ProductsSection
+                  brandId={brand.id}
+                  tree={tree}
+                  industryMajor={industryMajor}
+                  autoNew={pendingNewProductFor === brand.id}
+                  onAutoNewConsumed={() => setPendingNewProductFor(null)}
+                />
               )}
             </div>
           ),

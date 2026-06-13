@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Spinner, useToastContext } from '@librechat/client';
 import type { ProfileProduct, ProductInput, IndustryTaxonomy } from '~/data-provider/Profile';
 import {
@@ -129,16 +129,28 @@ export default function ProductsSection({
   brandId,
   tree,
   industryMajor,
+  autoNew = false,
+  onAutoNewConsumed,
 }: {
   brandId: number;
   tree: IndustryTaxonomy;
   industryMajor: string;
+  autoNew?: boolean;
+  onAutoNewConsumed?: () => void;
 }) {
   const localize = useLocalize();
   const { showToast } = useToastContext();
   const { data: products = [], isLoading } = useProfileProductsQuery(brandId);
   const [editingId, setEditingId] = useState<number | 'new' | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!autoNew) {
+      return;
+    }
+    setEditingId('new');
+    onAutoNewConsumed?.();
+  }, [autoNew, onAutoNewConsumed]);
 
   const onError = () => showToast({ message: localize('com_profile_save_error'), status: 'error' });
   const onSaved = () => {
