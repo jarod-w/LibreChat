@@ -9,16 +9,17 @@ import {
   useDeleteBrandMutation,
   useSetPrimaryBrandMutation,
 } from '~/data-provider/Profile';
-import { Field } from '~/components/Onboarding/ProfileFields';
+import { Field, ToggleField } from '~/components/Onboarding/ProfileFields';
 import ProductsSection from './ProductsSection';
 import { useLocalize } from '~/hooks';
 
-function toInput(brand?: ProfileBrand): BrandInput {
+function toInput(brand: ProfileBrand | undefined, defaultPrimary: boolean): BrandInput {
   return {
     brand_name: brand?.brand_name ?? '',
     brand_tagline: brand?.brand_tagline ?? '',
     brand_keywords: brand?.brand_keywords ?? [],
     forbidden_expressions: brand?.forbidden_expressions ?? '',
+    is_primary: brand?.is_primary ?? defaultPrimary,
   };
 }
 
@@ -40,6 +41,7 @@ function BrandForm({
   const set = (key: keyof BrandInput) => (v: string) => setData({ ...data, [key]: v });
   const setKeywords = (v: string) =>
     setData({ ...data, brand_keywords: v.split(',').map((s) => s.trim()).filter(Boolean) });
+  const setPrimary = (v: boolean) => setData({ ...data, is_primary: v });
 
   const handleSave = () => {
     if (!data.brand_name?.trim()) {
@@ -76,6 +78,12 @@ function BrandForm({
         value={data.forbidden_expressions ?? ''}
         onChange={set('forbidden_expressions')}
         multiline
+      />
+      <ToggleField
+        id="brand_is_primary"
+        label={localize('com_profile_primary_brand')}
+        checked={data.is_primary ?? false}
+        onChange={setPrimary}
       />
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel} className="h-9">
@@ -162,7 +170,7 @@ export default function BrandsSection({
           editingId === brand.id ? (
             <BrandForm
               key={brand.id}
-              initial={toInput(brand)}
+              initial={toInput(brand, false)}
               saving={saving}
               onSave={handleSave}
               onCancel={() => setEditingId(null)}
@@ -243,7 +251,7 @@ export default function BrandsSection({
 
       {editingId === 'new' && (
         <BrandForm
-          initial={toInput()}
+          initial={toInput(undefined, brands.length === 0)}
           saving={saving}
           onSave={handleSave}
           onCancel={() => setEditingId(null)}

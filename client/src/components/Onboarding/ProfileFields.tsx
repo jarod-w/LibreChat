@@ -1,5 +1,35 @@
+import { Switch } from '@librechat/client';
+
 const inputCls =
   'webkit-dark-styles w-full rounded-xl border border-border-light bg-surface-primary px-3.5 py-2.5 text-sm text-text-primary focus:border-green-500 focus:outline-none';
+
+export function ToggleField({
+  label,
+  id,
+  checked,
+  onChange,
+}: {
+  label: string;
+  id: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  const labelId = `${id}-label`;
+  return (
+    <div className="flex items-center justify-between">
+      <label id={labelId} htmlFor={id} className="text-sm font-medium text-text-secondary">
+        {label}
+      </label>
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={onChange}
+        data-testid={id}
+        aria-labelledby={labelId}
+      />
+    </div>
+  );
+}
 
 export function Field({
   label,

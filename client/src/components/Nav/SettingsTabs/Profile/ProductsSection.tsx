@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Spinner, useToastContext } from '@librechat/client';
+import { Button, Spinner, Switch, useToastContext } from '@librechat/client';
 import type { ProfileProduct, ProductInput, IndustryTaxonomy } from '~/data-provider/Profile';
 import {
   useProfileProductsQuery,
@@ -8,7 +8,7 @@ import {
   useDeleteProductMutation,
   useSetPrimaryProductMutation,
 } from '~/data-provider/Profile';
-import { Field, SelectField } from '~/components/Onboarding/ProfileFields';
+import { Field, SelectField, ToggleField } from '~/components/Onboarding/ProfileFields';
 import { useLocalize } from '~/hooks';
 
 function toInput(product?: ProfileProduct): ProductInput {
@@ -20,6 +20,8 @@ function toInput(product?: ProfileProduct): ProductInput {
     marketing_pain_points: product?.marketing_pain_points ?? '',
     main_channels: product?.main_channels ?? [],
     main_competitors: product?.main_competitors ?? '',
+    // 主打产品多选语义：新增默认开启；编辑时沿用现状
+    is_primary: product?.is_primary ?? true,
   };
 }
 
@@ -46,6 +48,7 @@ function ProductForm({
   const setChannels = (v: string) =>
     setData({ ...data, main_channels: v.split(',').map((s) => s.trim()).filter(Boolean) });
   const setMid = (v: string) => setData({ ...data, industry_mid: v, industry_minor: '' });
+  const setPrimary = (v: boolean) => setData({ ...data, is_primary: v });
 
   const midOptions = industryMajor ? Object.keys(tree[industryMajor] ?? {}) : [];
   const minorOptions =
@@ -112,6 +115,12 @@ function ProductForm({
         label={localize('com_onboarding_main_competitors')}
         value={data.main_competitors ?? ''}
         onChange={set('main_competitors')}
+      />
+      <ToggleField
+        id="product_is_primary"
+        label={localize('com_profile_flagship_product')}
+        checked={data.is_primary ?? false}
+        onChange={setPrimary}
       />
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel} className="h-9">
@@ -220,18 +229,19 @@ export default function ProductsSection({
               <span className="flex-1 truncate text-sm text-text-primary">
                 {product.product_name ?? `#${product.id}`}
               </span>
-              {product.is_primary && (
-                <span className="text-xs text-green-500">{localize('com_profile_primary')}</span>
-              )}
-              {!product.is_primary && (
-                <button
-                  type="button"
-                  onClick={() => setPrimary.mutate({ brandId, productId: product.id })}
-                  className="text-xs text-text-secondary hover:text-text-primary"
-                >
-                  {localize('com_profile_set_primary')}
-                </button>
-              )}
+              <span className="flex items-center gap-1.5">
+                <span className="text-xs text-text-secondary">
+                  {localize('com_profile_flagship_product')}
+                </span>
+                <Switch
+                  checked={product.is_primary}
+                  onCheckedChange={(v) =>
+                    setPrimary.mutate({ brandId, productId: product.id, isPrimary: v })
+                  }
+                  data-testid={`product-flagship-${product.id}`}
+                  aria-label={localize('com_profile_flagship_product')}
+                />
+              </span>
               <button
                 type="button"
                 onClick={() => setEditingId(product.id)}

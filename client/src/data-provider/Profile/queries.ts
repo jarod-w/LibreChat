@@ -94,6 +94,7 @@ export type BrandInput = {
   brand_tagline?: string | null;
   brand_keywords?: string[];
   forbidden_expressions?: string | null;
+  is_primary?: boolean;
 };
 
 export type ProductInput = {
@@ -105,6 +106,7 @@ export type ProductInput = {
   main_channels?: string[];
   social_links?: Record<string, string>;
   main_competitors?: string | null;
+  is_primary?: boolean;
 };
 
 // ── Queries ──────────────────────────────────────────────────────────
@@ -316,12 +318,19 @@ export const useDeleteProductMutation = (
 };
 
 export const useSetPrimaryProductMutation = (
-  options?: UseMutationOptions<unknown, Error, { brandId: number; productId: number }>,
+  options?: UseMutationOptions<
+    unknown,
+    Error,
+    { brandId: number; productId: number; isPrimary: boolean }
+  >,
 ) => {
   const queryClient = useQueryClient();
-  return useMutation<unknown, Error, { brandId: number; productId: number }>(
-    ({ brandId, productId }) =>
-      profileFetch(`/brands/${brandId}/products/${productId}/set-primary`, { method: 'POST' }),
+  return useMutation<unknown, Error, { brandId: number; productId: number; isPrimary: boolean }>(
+    ({ brandId, productId, isPrimary }) =>
+      profileFetch(`/brands/${brandId}/products/${productId}/set-primary`, {
+        method: 'POST',
+        body: JSON.stringify({ is_primary: isPrimary }),
+      }),
     {
       ...options,
       onSuccess: (...args) => {
