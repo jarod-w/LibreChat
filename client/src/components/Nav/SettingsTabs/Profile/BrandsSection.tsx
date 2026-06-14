@@ -192,7 +192,9 @@ export default function BrandsSection({
                   <span className="truncate">{brand.brand_name ?? `#${brand.id}`}</span>
                 </button>
                 {brand.is_primary && (
-                  <span className="text-xs text-green-500">{localize('com_profile_primary')}</span>
+                  <span className="text-xs text-green-500">
+                    {localize('com_profile_primary_brand')}
+                  </span>
                 )}
                 {!brand.is_primary && (
                   <button

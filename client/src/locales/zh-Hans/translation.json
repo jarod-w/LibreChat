@@ -584,6 +584,8 @@
   "com_profile_description": "管理用于个性化您的营销智能体的公司、品牌和产品信息。",
   "com_profile_phone": "电话",
   "com_profile_primary": "主要",
+  "com_profile_primary_brand": "主品牌",
+  "com_profile_flagship_product": "主打产品",
   "com_profile_products_section": "产品",
   "com_profile_save_error": "保存失败，请重试",
   "com_profile_saved": "已保存",
