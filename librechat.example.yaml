@@ -357,6 +357,9 @@ endpoints:
     #   1. headers 用占位符注入当前登录用户 id → kotlerapi 读 X-LibreChat-User-Id(首选)
     #   2. LibreChat 自动在 body 写入 user=req.user.id → kotlerapi 读 `user` 字段(兜底)
     # 注意:绝不要把 `user` 放进 dropParams,否则兜底失效。
+    # 品牌/产品选择:前端把 BrandProductSelector 选中的 brandId/productId 写进请求 body,
+    #   经 {{LIBRECHAT_BODY_*}} 占位符注入下方 header → kotlerapi 读 X-Brand-Id / X-Product-Id
+    #   据此从数据库加载对应品牌/产品档案(未选择时占位符为空,后端回退到主品牌)。
     - name: 'KotlerAPI'
       apiKey: '${KOTLER_API_KEY}'
       # 指向 kotlerapi 服务的 /v1(LibreChat 会自动追加 /chat/completions)
@@ -365,6 +368,8 @@ endpoints:
       headers:
         X-LibreChat-User-Id: '{{LIBRECHAT_USER_ID}}'
         X-LibreChat-User-Email: '{{LIBRECHAT_USER_EMAIL}}'
+        X-Brand-Id: '{{LIBRECHAT_BODY_BRANDID}}'
+        X-Product-Id: '{{LIBRECHAT_BODY_PRODUCTID}}'
       models:
         default: ['kotler-marketing-agent']
         fetch: false

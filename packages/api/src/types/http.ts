@@ -16,6 +16,10 @@ export type RequestBody = {
   model?: string;
   key?: string;
   endpointOption?: Partial<TEndpointOption>;
+  /** Nucleant: selected brand profile id, forwarded to KotlerAPI as X-Brand-Id */
+  brandId?: number;
+  /** Nucleant: selected product profile id, forwarded to KotlerAPI as X-Product-Id */
+  productId?: number;
 };
 
 export type ServerRequest = Request<unknown, unknown, RequestBody> & {

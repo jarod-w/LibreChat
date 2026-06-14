@@ -70,6 +70,8 @@ export default function useChatFunctions({
   const setFilesToDelete = useSetFilesToDelete();
   const getEphemeralAgent = useGetEphemeralAgent();
   const isTemporary = useRecoilValue(store.isTemporary);
+  const activeBrandId = useRecoilValue(store.activeBrandId);
+  const activeProductId = useRecoilValue(store.activeProductId);
   const { getExpiry } = useUserKey(immutableConversation?.endpoint ?? '');
   const setIsSubmitting = useSetRecoilState(store.isSubmittingFamily(index));
   const setShowStopButton = useSetRecoilState(store.showStopButtonByIndex(index));
@@ -331,6 +333,8 @@ export default function useChatFunctions({
       ephemeralAgent,
       editedContent,
       addedConvo,
+      brandId: activeBrandId,
+      productId: activeProductId,
     };
 
     if (isRegenerate) {

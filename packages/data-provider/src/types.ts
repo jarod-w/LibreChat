@@ -114,6 +114,10 @@ export type TPayload = Partial<TMessage> &
     editedContent?: TEditedContent | null;
     /** Added conversation for multi-convo feature */
     addedConvo?: TConversation;
+    /** Nucleant: selected brand profile id, forwarded to KotlerAPI as X-Brand-Id */
+    brandId?: number | null;
+    /** Nucleant: selected product profile id, forwarded to KotlerAPI as X-Product-Id */
+    productId?: number | null;
   };
 
 export type TEditedContent =
@@ -143,6 +147,10 @@ export type TSubmission = {
   editedContent?: TEditedContent | null;
   /** Added conversation for multi-convo feature */
   addedConvo?: TConversation;
+  /** Nucleant: selected brand profile id, forwarded to KotlerAPI as X-Brand-Id */
+  brandId?: number | null;
+  /** Nucleant: selected product profile id, forwarded to KotlerAPI as X-Product-Id */
+  productId?: number | null;
 };
 
 export type EventSubmission = Omit<TSubmission, 'initialResponse'> & { initialResponse: TMessage };
