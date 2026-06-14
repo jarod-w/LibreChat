@@ -36,6 +36,8 @@ export function clearLocalStorage(skipFirst?: boolean) {
       key.startsWith(LocalStorageKeys.ASST_ID_PREFIX) ||
       key.startsWith(LocalStorageKeys.AGENT_ID_PREFIX) ||
       key.startsWith(LocalStorageKeys.LAST_CONVO_SETUP) ||
+      // nucleant 品牌/产品选择按用户隔离：登出时清除，避免下一个用户串档
+      key.startsWith('nucleant_') ||
       key === LocalStorageKeys.LAST_SPEC ||
       key === LocalStorageKeys.LAST_TOOLS ||
       key === LocalStorageKeys.LAST_MODEL ||

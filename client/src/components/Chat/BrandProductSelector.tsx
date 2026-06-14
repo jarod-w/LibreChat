@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRecoilState } from 'recoil';
 import { useLocalize } from '~/hooks';
@@ -56,8 +56,61 @@ export default function BrandProductSelector() {
     brandProductStore.activeProductName,
   );
 
-  const { data: brands = [] } = useProfileBrandsQuery({ enabled: open });
-  const { data: products = [] } = useProfileProductsQuery(activeBrandId, { enabled: open && activeBrandId != null });
+  // 始终拉取当前登录用户的品牌/产品：既用于渲染正确的标签，也用于校正
+  // localStorage 里残留的、属于上一个用户的选择（跨用户串档 bug）。
+  const { data: brands = [], isSuccess: brandsLoaded } = useProfileBrandsQuery();
+  const { data: products = [], isSuccess: productsLoaded } = useProfileProductsQuery(
+    activeBrandId,
+    { enabled: activeBrandId != null },
+  );
+
+  // 品牌校正：持久化的 activeBrandId 必须属于当前用户，否则回退到主品牌/首个品牌。
+  useEffect(() => {
+    if (!brandsLoaded) {
+      return;
+    }
+    if (brands.length === 0) {
+      if (activeBrandId != null) {
+        setActiveBrandId(null);
+        setActiveBrandName(null);
+        setActiveProductId(null);
+        setActiveProductName(null);
+      }
+      return;
+    }
+    const current = brands.find((b) => b.id === activeBrandId);
+    if (current == null) {
+      const fallback = brands.find((b) => b.is_primary) ?? brands[0];
+      setActiveBrandId(fallback.id);
+      setActiveBrandName(fallback.brand_name ?? String(fallback.id));
+      setActiveProductId(null);
+      setActiveProductName(null);
+    } else if (current.brand_name && current.brand_name !== activeBrandName) {
+      setActiveBrandName(current.brand_name);
+    }
+  }, [brandsLoaded, brands, activeBrandId, activeBrandName]);
+
+  // 产品校正：持久化的 activeProductId 必须属于当前品牌，否则回退到主打/首个产品。
+  useEffect(() => {
+    if (!productsLoaded || activeBrandId == null) {
+      return;
+    }
+    if (products.length === 0) {
+      if (activeProductId != null) {
+        setActiveProductId(null);
+        setActiveProductName(null);
+      }
+      return;
+    }
+    const current = products.find((p) => p.id === activeProductId);
+    if (current == null) {
+      const fallback = products.find((p) => p.is_primary) ?? products[0];
+      setActiveProductId(fallback.id);
+      setActiveProductName(fallback.product_name ?? String(fallback.id));
+    } else if (current.product_name && current.product_name !== activeProductName) {
+      setActiveProductName(current.product_name);
+    }
+  }, [productsLoaded, products, activeBrandId, activeProductId, activeProductName]);
 
   const selectBrand = (brand: ProfileBrand) => {
     setActiveBrandId(brand.id);
