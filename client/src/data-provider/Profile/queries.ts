@@ -1,23 +1,29 @@
+import { request } from 'librechat-data-provider';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
 
-const kotlerapiBase = (): string =>
-  import.meta.env.VITE_KOTLERAPI_BASE_URL ?? 'http://localhost:8000';
+/**
+ * 档案接口经 LibreChat 后端代理（/api/kotler/profile/*）访问 kotlerapi，
+ * 不再由浏览器直连。代理在 requireJwtAuth 之后以 X-LibreChat-User-Id 携带当前
+ * 登录用户身份，kotlerapi 据此按用户隔离数据。使用共享 request 实例自动带上
+ * 当前会话的 Authorization 头并处理 token 刷新。
+ */
+const PROFILE_BASE = '/api/kotler/profile';
 
 async function profileFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${kotlerapiBase()}/v1/profile${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options?.headers ?? {}),
-    },
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`profile api ${res.status}: ${text}`);
+  const url = `${PROFILE_BASE}${path}`;
+  const method = (options?.method ?? 'GET').toUpperCase();
+  const body = options?.body != null ? JSON.parse(options.body as string) : undefined;
+  switch (method) {
+    case 'POST':
+      return request.post(url, body) as Promise<T>;
+    case 'PUT':
+      return request.put(url, body) as Promise<T>;
+    case 'DELETE':
+      return request.delete<T>(url);
+    default:
+      return request.get<T>(url);
   }
-  if (res.status === 204) return undefined as unknown as T;
-  return res.json() as Promise<T>;
 }
 
 // ── Types ────────────────────────────────────────────────────────────
