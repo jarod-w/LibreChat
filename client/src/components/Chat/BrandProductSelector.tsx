@@ -190,7 +190,9 @@ export default function BrandProductSelector() {
                         {brand.brand_name ?? `Brand ${brand.id}`}
                       </span>
                       {brand.is_primary && (
-                        <span className="ml-auto text-xs text-text-secondary">Primary</span>
+                        <span className="ml-auto text-xs text-text-secondary">
+                          {localize('com_profile_primary_brand')}
+                        </span>
                       )}
                     </button>
 
