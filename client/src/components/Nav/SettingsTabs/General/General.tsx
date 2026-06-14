@@ -14,6 +14,7 @@ const toggleSwitchConfigs = [
     switchId: 'enableUserMsgMarkdown',
     hoverCardText: undefined,
     key: 'enableUserMsgMarkdown',
+    disabled: false,
   },
   {
     stateAtom: store.autoScroll,
@@ -21,6 +22,7 @@ const toggleSwitchConfigs = [
     switchId: 'autoScroll',
     hoverCardText: undefined,
     key: 'autoScroll',
+    disabled: false,
   },
   {
     stateAtom: store.hideSidePanel,
@@ -28,6 +30,7 @@ const toggleSwitchConfigs = [
     switchId: 'hideSidePanel',
     hoverCardText: undefined,
     key: 'hideSidePanel',
+    disabled: true,
   },
   {
     stateAtom: store.keepScreenAwake,
@@ -35,6 +38,7 @@ const toggleSwitchConfigs = [
     switchId: 'keepScreenAwake',
     hoverCardText: undefined,
     key: 'keepScreenAwake',
+    disabled: false,
   },
 ];
 
@@ -193,6 +197,7 @@ function General() {
             localizationKey={config.localizationKey}
             hoverCardText={config.hoverCardText}
             switchId={config.switchId}
+            disabled={config.disabled}
           />
         </div>
       ))}

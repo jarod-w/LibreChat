@@ -40,13 +40,10 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
     const tabs: SettingsTabValues[] = [
       SettingsTabValues.GENERAL,
       SettingsTabValues.CHAT,
-      SettingsTabValues.COMMANDS,
-      SettingsTabValues.SPEECH,
       ...(hasAnyPersonalizationFeature ? [SettingsTabValues.PERSONALIZATION] : []),
-      SettingsTabValues.DATA,
       ...(startupConfig?.balance?.enabled ? [SettingsTabValues.BALANCE] : []),
-      SettingsTabValues.ACCOUNT,
       SettingsTabValues.PROFILE,
+      SettingsTabValues.ACCOUNT,
     ];
     const currentIndex = tabs.indexOf(activeTab);
 
@@ -74,6 +71,7 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
     value: SettingsTabValues;
     icon: React.JSX.Element;
     label: TranslationKeys;
+    disabled?: boolean;
   }[] = [
     {
       value: SettingsTabValues.GENERAL,
@@ -89,11 +87,13 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       value: SettingsTabValues.COMMANDS,
       icon: <Command className="icon-sm" aria-hidden="true" />,
       label: 'com_nav_commands',
+      disabled: true,
     },
     {
       value: SettingsTabValues.SPEECH,
       icon: <SpeechIcon className="icon-sm" aria-hidden="true" />,
       label: 'com_nav_setting_speech',
+      disabled: true,
     },
     ...(hasAnyPersonalizationFeature
       ? [
@@ -108,6 +108,7 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       value: SettingsTabValues.DATA,
       icon: <DataIcon />,
       label: 'com_nav_setting_data',
+      disabled: true,
     },
     ...(startupConfig?.balance?.enabled
       ? [
@@ -119,14 +120,14 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
         ]
       : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
     {
-      value: SettingsTabValues.ACCOUNT,
-      icon: <UserIcon />,
-      label: 'com_nav_setting_account',
-    },
-    {
       value: SettingsTabValues.PROFILE,
       icon: <Building2 className="icon-sm" aria-hidden="true" />,
       label: 'com_nav_setting_profile',
+    },
+    {
+      value: SettingsTabValues.ACCOUNT,
+      icon: <UserIcon />,
+      label: 'com_nav_setting_account',
     },
   ];
 
@@ -209,11 +210,13 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
                     )}
                     onKeyDown={handleKeyDown}
                   >
-                    {settingsTabs.map(({ value, icon, label }) => (
+                    {settingsTabs.map(({ value, icon, label, disabled }) => (
                       <Tabs.Trigger
                         key={value}
+                        disabled={disabled}
                         className={cn(
                           'group relative z-10 m-1 flex items-center justify-start gap-2 rounded-xl px-2 py-1.5 transition-all duration-200 ease-in-out',
+                          'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-40',
                           isSmallScreen
                             ? 'flex-1 justify-center text-nowrap p-1 px-3 text-sm text-text-secondary radix-state-active:bg-surface-hover radix-state-active:text-text-primary'
                             : 'bg-transparent text-text-secondary radix-state-active:bg-surface-tertiary radix-state-active:text-text-primary',
