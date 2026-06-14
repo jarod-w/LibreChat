@@ -144,7 +144,7 @@ export default function BrandProductSelector() {
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded-lg border border-border-light bg-surface-secondary px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-border-medium hover:text-text-primary"
+        className="flex h-10 items-center gap-1.5 rounded-xl border border-border-light bg-surface-secondary px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:border-border-medium hover:text-text-primary"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={localize('com_ui_brand_selector')}
