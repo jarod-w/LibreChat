@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { Button, Spinner, Switch, useToastContext } from '@librechat/client';
 import type { ProfileProduct, ProductInput, IndustryTaxonomy } from '~/data-provider/Profile';
 import {
@@ -9,6 +10,7 @@ import {
   useSetPrimaryProductMutation,
 } from '~/data-provider/Profile';
 import { Field, SelectField, ToggleField } from '~/components/Onboarding/ProfileFields';
+import DocumentsSection from './DocumentsSection';
 import { useLocalize } from '~/hooks';
 
 function toInput(product?: ProfileProduct): ProductInput {
@@ -152,6 +154,7 @@ export default function ProductsSection({
   const { data: products = [], isLoading } = useProfileProductsQuery(brandId);
   const [editingId, setEditingId] = useState<number | 'new' | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [expandedDocsId, setExpandedDocsId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!autoNew) {
@@ -222,49 +225,65 @@ export default function ProductsSection({
               onCancel={() => setEditingId(null)}
             />
           ) : (
-            <div
-              key={product.id}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-tertiary"
-            >
-              <span className="flex-1 truncate text-sm text-text-primary">
-                {product.product_name ?? `#${product.id}`}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="text-xs text-text-secondary">
-                  {localize('com_profile_flagship_product')}
-                </span>
-                <Switch
-                  checked={product.is_primary}
-                  onCheckedChange={(v) =>
-                    setPrimary.mutate({ brandId, productId: product.id, isPrimary: v })
+            <div key={product.id} className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-tertiary">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedDocsId(expandedDocsId === product.id ? null : product.id)
                   }
-                  data-testid={`product-flagship-${product.id}`}
-                  aria-label={localize('com_profile_flagship_product')}
-                />
-              </span>
-              <button
-                type="button"
-                onClick={() => setEditingId(product.id)}
-                className="text-xs text-text-secondary hover:text-text-primary"
-              >
-                {localize('com_ui_edit')}
-              </button>
-              {confirmDeleteId === product.id ? (
+                  aria-expanded={expandedDocsId === product.id}
+                  className="flex flex-1 items-center gap-1.5 truncate text-left text-sm text-text-primary"
+                >
+                  <ChevronRight
+                    className={`size-4 shrink-0 text-text-secondary transition-transform ${
+                      expandedDocsId === product.id ? 'rotate-90' : ''
+                    }`}
+                  />
+                  <span className="truncate">{product.product_name ?? `#${product.id}`}</span>
+                </button>
+                <span className="flex items-center gap-1.5">
+                  <span className="text-xs text-text-secondary">
+                    {localize('com_profile_flagship_product')}
+                  </span>
+                  <Switch
+                    checked={product.is_primary}
+                    onCheckedChange={(v) =>
+                      setPrimary.mutate({ brandId, productId: product.id, isPrimary: v })
+                    }
+                    data-testid={`product-flagship-${product.id}`}
+                    aria-label={localize('com_profile_flagship_product')}
+                  />
+                </span>
                 <button
                   type="button"
-                  onClick={() => deleteProduct.mutate({ brandId, productId: product.id })}
-                  className="text-xs font-medium text-red-500 hover:underline"
+                  onClick={() => setEditingId(product.id)}
+                  className="text-xs text-text-secondary hover:text-text-primary"
                 >
-                  {localize('com_profile_confirm_delete')}
+                  {localize('com_ui_edit')}
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setConfirmDeleteId(product.id)}
-                  className="text-xs text-red-500 hover:underline"
-                >
-                  {localize('com_ui_delete')}
-                </button>
+                {confirmDeleteId === product.id ? (
+                  <button
+                    type="button"
+                    onClick={() => deleteProduct.mutate({ brandId, productId: product.id })}
+                    className="text-xs font-medium text-red-500 hover:underline"
+                  >
+                    {localize('com_profile_confirm_delete')}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteId(product.id)}
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    {localize('com_ui_delete')}
+                  </button>
+                )}
+              </div>
+              {expandedDocsId === product.id && (
+                <div className="ml-3 border-l border-border-light pl-3">
+                  <DocumentsSection brandId={brandId} productId={product.id} />
+                </div>
               )}
             </div>
           ),

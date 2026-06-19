@@ -11,6 +11,7 @@ import {
 } from '~/data-provider/Profile';
 import { Field, ToggleField } from '~/components/Onboarding/ProfileFields';
 import ProductsSection from './ProductsSection';
+import DocumentsSection from './DocumentsSection';
 import { useLocalize } from '~/hooks';
 
 function toInput(brand: ProfileBrand | undefined, defaultPrimary: boolean): BrandInput {
@@ -238,13 +239,18 @@ export default function BrandsSection({
                 )}
               </div>
               {expandedId === brand.id && (
-                <ProductsSection
-                  brandId={brand.id}
-                  tree={tree}
-                  industryMajor={industryMajor}
-                  autoNew={pendingNewProductFor === brand.id}
-                  onAutoNewConsumed={() => setPendingNewProductFor(null)}
-                />
+                <>
+                  <ProductsSection
+                    brandId={brand.id}
+                    tree={tree}
+                    industryMajor={industryMajor}
+                    autoNew={pendingNewProductFor === brand.id}
+                    onAutoNewConsumed={() => setPendingNewProductFor(null)}
+                  />
+                  <div className="ml-3 border-l border-border-light pl-3">
+                    <DocumentsSection brandId={brand.id} />
+                  </div>
+                </>
               )}
             </div>
           ),

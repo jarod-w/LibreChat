@@ -37,6 +37,36 @@ router.get('/jobs/:jobId', async (req, res) => {
   }
 });
 
+/**
+ * 文档摄入上传走 multipart，不能套用下方强制 application/json 的通用 /profile 代理。
+ * 这里把原始请求流直接透传给 kotlerapi，保留 multipart 边界与文件字节。
+ * 必须在通用 /profile 代理之前注册，否则会被其拦截。
+ * extract 内含 LLM 提炼，耗时较长，超时放宽到 120s。
+ */
+router.post('/profile/documents/extract', requireJwtAuth, async (req, res) => {
+  try {
+    const response = await axios.post(
+      `${KOTLER_API_URL}/v1/profile/documents/extract`,
+      req,
+      {
+        timeout: 120000,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+        headers: {
+          'Content-Type': req.headers['content-type'],
+          'Content-Length': req.headers['content-length'],
+          Authorization: `Bearer ${KOTLER_API_KEY}`,
+          'X-LibreChat-User-Id': req.user.id,
+        },
+        validateStatus: () => true,
+      },
+    );
+    res.status(response.status).json(response.data);
+  } catch (err) {
+    res.status(502).json({ error: 'Failed to reach kotlerapi document extract service' });
+  }
+});
+
 router.use('/profile', requireJwtAuth, async (req, res) => {
   try {
     const response = await axios({
