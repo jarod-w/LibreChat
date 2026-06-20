@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { ArrowUpDown, ArrowUp, ArrowDown, Database } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Database, FileText } from 'lucide-react';
 import { FileSources, FileContext } from 'librechat-data-provider';
 import {
   Button,
@@ -11,11 +11,18 @@ import {
 } from '@librechat/client';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { TFile } from 'librechat-data-provider';
+import type { ProfileDocumentStatus } from '~/data-provider/Profile';
 import ImagePreview from '~/components/Chat/Input/Files/ImagePreview';
 import FilePreview from '~/components/Chat/Input/Files/FilePreview';
 import { TranslationKeys, useLocalize } from '~/hooks';
 import { SortFilterHeader } from './SortFilterHeader';
 import { formatDate, getFileType } from '~/utils';
+
+/** 「我的文件」表行：LibreChat 文件，叠加可选的营销档案文档标记（只读展示）。 */
+export type MyFile = TFile & {
+  isProfileDocument?: boolean;
+  profileStatus?: ProfileDocumentStatus;
+};
 
 const contextMap: Record<any, TranslationKeys> = {
   [FileContext.avatar]: 'com_ui_avatar',
@@ -26,7 +33,7 @@ const contextMap: Record<any, TranslationKeys> = {
   [FileContext.message_attachment]: 'com_ui_attachment',
 };
 
-export const columns: ColumnDef<TFile>[] = [
+export const columns: ColumnDef<MyFile>[] = [
   {
     id: 'select',
     size: 40,
@@ -53,6 +60,10 @@ export const columns: ColumnDef<TFile>[] = [
     },
     cell: ({ row }) => {
       const localize = useLocalize();
+      // 营销档案文档为只读，不参与本表的批量删除（删除请在「设置 → 营销档案」中操作）。
+      if (row.original.isProfileDocument) {
+        return null;
+      }
       return (
         <Checkbox
           checked={row.getIsSelected()}
@@ -194,7 +205,15 @@ export const columns: ColumnDef<TFile>[] = [
     },
     cell: ({ row }) => {
       const localize = useLocalize();
-      const { source } = row.original;
+      const { source, isProfileDocument } = row.original;
+      if (isProfileDocument) {
+        return (
+          <div className="flex flex-wrap items-center gap-2">
+            <FileText className="icon-sm text-cyan-700" aria-hidden="true" />
+            {localize('com_ui_marketing_profile')}
+          </div>
+        );
+      }
       if (source === FileSources.openai) {
         return (
           <div className="flex flex-wrap items-center gap-2">
@@ -237,8 +256,19 @@ export const columns: ColumnDef<TFile>[] = [
       );
     },
     cell: ({ row }) => {
-      const { context } = row.original;
+      const { context, isProfileDocument, profileStatus } = row.original;
       const localize = useLocalize();
+      if (isProfileDocument) {
+        return (
+          <div className="flex flex-wrap items-center gap-2">
+            {localize(
+              profileStatus === 'confirmed'
+                ? 'com_profile_document_confirmed'
+                : 'com_profile_document_draft',
+            )}
+          </div>
+        );
+      }
       return (
         <div className="flex flex-wrap items-center gap-2">
           {localize(contextMap[context ?? FileContext.unknown])}

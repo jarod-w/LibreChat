@@ -63,6 +63,14 @@ export const useProfileDocumentsQuery = (
     { enabled: brandId != null, refetchOnWindowFocus: false, ...config },
   );
 
+/** 列出当前用户的全部档案文档（不限品牌），供「我的文件」合并展示。 */
+export const useAllProfileDocumentsQuery = (config?: UseQueryOptions<ProfileDocument[]>) =>
+  useQuery<ProfileDocument[]>(
+    [PROFILE_DOCUMENTS_KEY, 'all'],
+    () => request.get<ProfileDocument[]>(DOCS_BASE),
+    { refetchOnWindowFocus: false, ...config },
+  );
+
 // ── Mutations ────────────────────────────────────────────────────────
 
 export const useExtractDocumentMutation = (
