@@ -11,6 +11,7 @@ import { useAddedResponse, useResumeOnLoad, useAdaptiveSSE, useChatHelpers } fro
 import ConversationStarters from './Input/ConversationStarters';
 import { useGetMessagesByConvoId } from '~/data-provider';
 import MessagesView from './Messages/MessagesView';
+import { IntentSelector } from './Intent';
 import Presentation from './Presentation';
 import ChatForm from './Input/ChatForm';
 import Landing from './Landing';
@@ -92,6 +93,8 @@ function ChatView({ index = 0 }: { index?: number }) {
                       : 'h-full overflow-y-auto',
                   )}
                 >
+                  {/* Nucleant 意图选择器：落地态置于欢迎卡 + 输入框上方（方案 B） */}
+                  {isLandingPage && <IntentSelector />}
                   {content}
                   <div
                     className={cn(

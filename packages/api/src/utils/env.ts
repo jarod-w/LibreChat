@@ -113,6 +113,8 @@ const ALLOWED_BODY_FIELDS = [
   'messageId',
   'brandId',
   'productId',
+  'intent',
+  'intentFunctions',
 ] as const;
 
 /**

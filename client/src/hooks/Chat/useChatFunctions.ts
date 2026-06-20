@@ -72,6 +72,8 @@ export default function useChatFunctions({
   const isTemporary = useRecoilValue(store.isTemporary);
   const activeBrandId = useRecoilValue(store.activeBrandId);
   const activeProductId = useRecoilValue(store.activeProductId);
+  const activeIntent = useRecoilValue(store.activeIntent);
+  const activeIntentFunctions = useRecoilValue(store.activeIntentFunctions);
   const { getExpiry } = useUserKey(immutableConversation?.endpoint ?? '');
   const setIsSubmitting = useSetRecoilState(store.isSubmittingFamily(index));
   const setShowStopButton = useSetRecoilState(store.showStopButtonByIndex(index));
@@ -335,6 +337,8 @@ export default function useChatFunctions({
       addedConvo,
       brandId: activeBrandId,
       productId: activeProductId,
+      intent: activeIntent,
+      intentFunctions: activeIntentFunctions.length ? activeIntentFunctions.join(',') : null,
     };
 
     if (isRegenerate) {

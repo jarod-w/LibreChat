@@ -118,6 +118,10 @@ export type TPayload = Partial<TMessage> &
     brandId?: number | null;
     /** Nucleant: selected product profile id, forwarded to KotlerAPI as X-Product-Id */
     productId?: number | null;
+    /** Nucleant: selected intent key (intent selector), forwarded to KotlerAPI as X-Intent */
+    intent?: string | null;
+    /** Nucleant: selected intent-function keys, comma-joined, forwarded as X-Intent-Functions */
+    intentFunctions?: string | null;
   };
 
 export type TEditedContent =
@@ -151,6 +155,10 @@ export type TSubmission = {
   brandId?: number | null;
   /** Nucleant: selected product profile id, forwarded to KotlerAPI as X-Product-Id */
   productId?: number | null;
+  /** Nucleant: selected intent key (intent selector), forwarded to KotlerAPI as X-Intent */
+  intent?: string | null;
+  /** Nucleant: selected intent-function keys, comma-joined, forwarded as X-Intent-Functions */
+  intentFunctions?: string | null;
 };
 
 export type EventSubmission = Omit<TSubmission, 'initialResponse'> & { initialResponse: TMessage };

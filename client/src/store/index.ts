@@ -13,6 +13,7 @@ import settings from './settings';
 import misc from './misc';
 import isTemporary from './temporary';
 import brandProduct from './brandProduct';
+import intent from './intent';
 export * from './agents';
 export * from './mcp';
 export * from './favorites';
@@ -33,4 +34,5 @@ export default {
   ...misc,
   ...isTemporary,
   ...brandProduct,
+  ...intent,
 };

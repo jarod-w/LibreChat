@@ -370,6 +370,11 @@ endpoints:
         X-LibreChat-User-Email: '{{LIBRECHAT_USER_EMAIL}}'
         X-Brand-Id: '{{LIBRECHAT_BODY_BRANDID}}'
         X-Product-Id: '{{LIBRECHAT_BODY_PRODUCTID}}'
+        # 意图选择器：前端把选中的意图/意图职能写进 body(intent / intentFunctions),
+        #   经占位符注入 header → kotlerapi 读 X-Intent / X-Intent-Functions
+        #   (intentFunctions 为逗号分隔的 key 串)。详见 kotlerapi/markdown/intent_selector_backend.design.md
+        X-Intent: '{{LIBRECHAT_BODY_INTENT}}'
+        X-Intent-Functions: '{{LIBRECHAT_BODY_INTENTFUNCTIONS}}'
       models:
         default: ['kotler-marketing-agent']
         fetch: false

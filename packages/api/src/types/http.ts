@@ -20,6 +20,10 @@ export type RequestBody = {
   brandId?: number;
   /** Nucleant: selected product profile id, forwarded to KotlerAPI as X-Product-Id */
   productId?: number;
+  /** Nucleant: selected intent key (intent selector), forwarded to KotlerAPI as X-Intent */
+  intent?: string;
+  /** Nucleant: selected intent-function keys, comma-joined, forwarded as X-Intent-Functions */
+  intentFunctions?: string;
 };
 
 export type ServerRequest = Request<unknown, unknown, RequestBody> & {
