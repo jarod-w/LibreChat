@@ -8,17 +8,30 @@ import {
   useUpdateProductMutation,
   useDeleteProductMutation,
   useSetPrimaryProductMutation,
+  useSalesModelOptionsQuery,
+  useProductAttributeOptionsQuery,
 } from '~/data-provider/Profile';
-import { Field, SelectField, ToggleField } from '~/components/Onboarding/ProfileFields';
+import { Field, SelectField, ToggleField, ChipsField } from '~/components/Onboarding/ProfileFields';
 import DocumentsSection from './DocumentsSection';
 import { useLocalize } from '~/hooks';
+
+/** 商圈类型（产品 C，固定单选枚举，值为后端存储的规范字面量） */
+const BUSINESS_DISTRICT_TYPES = ['社区店', '商场店', '街边店', '写字楼店', '交通枢纽店', '其他'];
+/** 经营阶段（产品 E，固定单选枚举） */
+const BUSINESS_STAGES = ['筹备期', '新店期（开业1年内）', '成长期', '成熟期', '转型期'];
 
 function toInput(product?: ProfileProduct): ProductInput {
   return {
     product_name: product?.product_name ?? '',
     target_customers: product?.target_customers ?? '',
     industry_mid: product?.industry_mid ?? '',
-    industry_minor: product?.industry_minor ?? '',
+    industry_minor: product?.industry_minor ?? [],
+    store_region: product?.store_region ?? '',
+    business_district_type: product?.business_district_type ?? '',
+    sales_model: product?.sales_model ?? [],
+    business_stage: product?.business_stage ?? '',
+    price_band: product?.price_band ?? '',
+    product_attributes: product?.product_attributes ?? [],
     marketing_pain_points: product?.marketing_pain_points ?? '',
     main_channels: product?.main_channels ?? [],
     main_competitors: product?.main_competitors ?? '',
@@ -31,6 +44,8 @@ function ProductForm({
   initial,
   tree,
   industryMajor,
+  salesModelOptions,
+  productAttributeOptions,
   saving,
   onSave,
   onCancel,
@@ -38,6 +53,8 @@ function ProductForm({
   initial: ProductInput;
   tree: IndustryTaxonomy;
   industryMajor: string;
+  salesModelOptions: string[];
+  productAttributeOptions: string[];
   saving: boolean;
   onSave: (data: ProductInput) => void;
   onCancel: () => void;
@@ -47,9 +64,11 @@ function ProductForm({
   const [error, setError] = useState('');
 
   const set = (key: keyof ProductInput) => (v: string) => setData({ ...data, [key]: v });
+  const setList = (key: keyof ProductInput) => (v: string[]) => setData({ ...data, [key]: v });
   const setChannels = (v: string) =>
     setData({ ...data, main_channels: v.split(',').map((s) => s.trim()).filter(Boolean) });
-  const setMid = (v: string) => setData({ ...data, industry_mid: v, industry_minor: '' });
+  // 切换中类清空小类多选（小类隶属于中类）
+  const setMid = (v: string) => setData({ ...data, industry_mid: v, industry_minor: [] });
   const setPrimary = (v: boolean) => setData({ ...data, is_primary: v });
 
   const midOptions = industryMajor ? Object.keys(tree[industryMajor] ?? {}) : [];
@@ -69,9 +88,51 @@ function ProductForm({
       {error && <p className="text-sm text-red-500">{error}</p>}
       <Field
         id="product_name"
-        label={`${localize('com_onboarding_product_name')} *`}
+        label={`${localize('com_profile_product_store_name')} *`}
         value={data.product_name ?? ''}
         onChange={set('product_name')}
+      />
+      <SelectField
+        id="industry_mid"
+        label={localize('com_onboarding_industry_mid')}
+        value={data.industry_mid ?? ''}
+        onChange={setMid}
+        options={midOptions}
+        disabled={midOptions.length === 0}
+        placeholder={localize('com_ui_select')}
+      />
+      <ChipsField
+        id="industry_minor"
+        label={localize('com_onboarding_industry_minor')}
+        value={data.industry_minor ?? []}
+        onChange={setList('industry_minor')}
+        options={minorOptions}
+        disabled={minorOptions.length === 0}
+        emptyHint={localize('com_profile_industry_minor_hint')}
+      />
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          id="business_stage"
+          label={localize('com_profile_business_stage')}
+          value={data.business_stage ?? ''}
+          onChange={set('business_stage')}
+          options={BUSINESS_STAGES}
+          placeholder={localize('com_ui_select')}
+        />
+        <SelectField
+          id="business_district_type"
+          label={localize('com_profile_business_district_type')}
+          value={data.business_district_type ?? ''}
+          onChange={set('business_district_type')}
+          options={BUSINESS_DISTRICT_TYPES}
+          placeholder={localize('com_ui_select')}
+        />
+      </div>
+      <Field
+        id="store_region"
+        label={localize('com_profile_store_region')}
+        value={data.store_region ?? ''}
+        onChange={set('store_region')}
       />
       <Field
         id="target_customers"
@@ -79,26 +140,31 @@ function ProductForm({
         value={data.target_customers ?? ''}
         onChange={set('target_customers')}
       />
-      <div className="grid grid-cols-2 gap-3">
-        <SelectField
-          id="industry_mid"
-          label={localize('com_onboarding_industry_mid')}
-          value={data.industry_mid ?? ''}
-          onChange={setMid}
-          options={midOptions}
-          disabled={midOptions.length === 0}
-          placeholder={localize('com_ui_select')}
-        />
-        <SelectField
-          id="industry_minor"
-          label={localize('com_onboarding_industry_minor')}
-          value={data.industry_minor ?? ''}
-          onChange={set('industry_minor')}
-          options={minorOptions}
-          disabled={minorOptions.length === 0}
-          placeholder={localize('com_ui_select')}
-        />
-      </div>
+      <ChipsField
+        id="sales_model"
+        label={localize('com_profile_sales_model')}
+        value={data.sales_model ?? []}
+        onChange={setList('sales_model')}
+        options={salesModelOptions}
+        allowCustom
+        customPlaceholder={localize('com_profile_chips_custom_placeholder')}
+      />
+      <Field
+        id="price_band"
+        label={localize('com_profile_price_band')}
+        value={data.price_band ?? ''}
+        onChange={set('price_band')}
+        placeholder={localize('com_profile_price_band_placeholder')}
+      />
+      <ChipsField
+        id="product_attributes"
+        label={localize('com_profile_product_attributes')}
+        value={data.product_attributes ?? []}
+        onChange={setList('product_attributes')}
+        options={productAttributeOptions}
+        allowCustom
+        customPlaceholder={localize('com_profile_chips_custom_placeholder')}
+      />
       <Field
         id="marketing_pain_points"
         label={localize('com_onboarding_marketing_pain_points')}
@@ -152,6 +218,10 @@ export default function ProductsSection({
   const localize = useLocalize();
   const { showToast } = useToastContext();
   const { data: products = [], isLoading } = useProfileProductsQuery(brandId);
+  const { data: salesModelMap = {} } = useSalesModelOptionsQuery();
+  const { data: productAttributeMap = {} } = useProductAttributeOptionsQuery();
+  const salesModelOptions = industryMajor ? salesModelMap[industryMajor] ?? [] : [];
+  const productAttributeOptions = industryMajor ? productAttributeMap[industryMajor] ?? [] : [];
   const [editingId, setEditingId] = useState<number | 'new' | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [expandedDocsId, setExpandedDocsId] = useState<number | null>(null);
@@ -220,6 +290,8 @@ export default function ProductsSection({
               initial={toInput(product)}
               tree={tree}
               industryMajor={industryMajor}
+              salesModelOptions={salesModelOptions}
+              productAttributeOptions={productAttributeOptions}
               saving={saving}
               onSave={handleSave}
               onCancel={() => setEditingId(null)}
@@ -295,6 +367,8 @@ export default function ProductsSection({
           initial={toInput()}
           tree={tree}
           industryMajor={industryMajor}
+          salesModelOptions={salesModelOptions}
+          productAttributeOptions={productAttributeOptions}
           saving={saving}
           onSave={handleSave}
           onCancel={() => setEditingId(null)}

@@ -47,6 +47,7 @@ export function MyFilesModal({
       updatedAt: doc.confirmed_at || doc.uploaded_at,
       isProfileDocument: true,
       profileStatus: doc.status,
+      profileDocId: doc.id,
     }));
     return [...files, ...profileRows];
   }, [files, profileDocs]);

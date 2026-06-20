@@ -18,10 +18,12 @@ import { TranslationKeys, useLocalize } from '~/hooks';
 import { SortFilterHeader } from './SortFilterHeader';
 import { formatDate, getFileType } from '~/utils';
 
-/** 「我的文件」表行：LibreChat 文件，叠加可选的营销档案文档标记（只读展示）。 */
+/** 「我的文件」表行：LibreChat 文件，叠加可选的营销档案文档标记。 */
 export type MyFile = TFile & {
   isProfileDocument?: boolean;
   profileStatus?: ProfileDocumentStatus;
+  /** 营销档案文档在 kotlerapi 的数字 id，用于经代理删除。 */
+  profileDocId?: number;
 };
 
 const contextMap: Record<any, TranslationKeys> = {
@@ -60,10 +62,6 @@ export const columns: ColumnDef<MyFile>[] = [
     },
     cell: ({ row }) => {
       const localize = useLocalize();
-      // 营销档案文档为只读，不参与本表的批量删除（删除请在「设置 → 营销档案」中操作）。
-      if (row.original.isProfileDocument) {
-        return null;
-      }
       return (
         <Checkbox
           checked={row.getIsSelected()}

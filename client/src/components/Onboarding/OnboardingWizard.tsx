@@ -139,7 +139,9 @@ function ProductStep({
   const midOptions = industryMajor ? Object.keys(tree[industryMajor] ?? {}) : [];
   const minorOptions =
     industryMajor && data.industry_mid ? tree[industryMajor]?.[data.industry_mid] ?? [] : [];
-  const setMid = (v: string) => onChange({ ...data, industry_mid: v, industry_minor: '' });
+  const setMid = (v: string) => onChange({ ...data, industry_mid: v, industry_minor: [] });
+  // 引导页保持小类单选（轻量），提交时包装为数组以匹配后端 TEXT[]（首元素=主营）
+  const setMinor = (v: string) => onChange({ ...data, industry_minor: v ? [v] : [] });
 
   return (
     <div className="flex flex-col gap-4">
@@ -170,8 +172,8 @@ function ProductStep({
         <SelectField
           id="industry_minor"
           label={localize('com_onboarding_industry_minor')}
-          value={data.industry_minor ?? ''}
-          onChange={set('industry_minor')}
+          value={data.industry_minor?.[0] ?? ''}
+          onChange={setMinor}
           options={minorOptions}
           disabled={minorOptions.length === 0}
           placeholder={localize('com_ui_select')}
@@ -218,7 +220,7 @@ export default function OnboardingWizard() {
 
   const handleUserChange = (d: UserData) => {
     if (d.industry_major !== userData.industry_major) {
-      setProductData((p) => ({ ...p, industry_mid: '', industry_minor: '' }));
+      setProductData((p) => ({ ...p, industry_mid: '', industry_minor: [] }));
     }
     setUserData(d);
   };

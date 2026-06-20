@@ -44,7 +44,13 @@ export type ProfileProduct = {
   product_name: string | null;
   target_customers: string | null;
   industry_mid: string | null;
-  industry_minor: string | null;
+  industry_minor: string[];
+  store_region: string | null;
+  business_district_type: string | null;
+  sales_model: string[];
+  business_stage: string | null;
+  price_band: string | null;
+  product_attributes: string[];
   marketing_pain_points: string | null;
   main_channels: string[];
   main_competitors: string | null;
@@ -53,6 +59,9 @@ export type ProfileProduct = {
 
 /** 行业三级分类树：{大类: {中类: [小类, ...]}} */
 export type IndustryTaxonomy = Record<string, Record<string, string[]>>;
+
+/** 行业大类 → 候选项数组（销售方式 / 产品属性）：{大类: [候选, ...]} */
+export type IndustryOptionMap = Record<string, string[]>;
 
 export type OnboardingPayload = {
   user?: {
@@ -71,7 +80,7 @@ export type OnboardingPayload = {
     product_name?: string;
     target_customers?: string;
     industry_mid?: string;
-    industry_minor?: string;
+    industry_minor?: string[];
     marketing_pain_points?: string;
     main_channels?: string[];
     main_competitors?: string;
@@ -81,6 +90,7 @@ export type OnboardingPayload = {
 export type ProfileUser = {
   id: number;
   company_name: string | null;
+  company_website: string | null;
   industry_major: string | null;
   contact_name: string | null;
   phone: string | null;
@@ -89,6 +99,7 @@ export type ProfileUser = {
 
 export type UserProfileInput = {
   company_name?: string | null;
+  company_website?: string | null;
   industry_major?: string | null;
   contact_name?: string | null;
   phone?: string | null;
@@ -107,7 +118,13 @@ export type ProductInput = {
   product_name?: string | null;
   target_customers?: string | null;
   industry_mid?: string | null;
-  industry_minor?: string | null;
+  industry_minor?: string[];
+  store_region?: string | null;
+  business_district_type?: string | null;
+  sales_model?: string[];
+  business_stage?: string | null;
+  price_band?: string | null;
+  product_attributes?: string[];
   marketing_pain_points?: string | null;
   main_channels?: string[];
   social_links?: Record<string, string>;
@@ -121,6 +138,8 @@ export const PROFILE_USER_KEY = 'profile-user';
 export const PROFILE_BRANDS_KEY = 'profile-brands';
 export const PROFILE_PRODUCTS_KEY = 'profile-products';
 export const INDUSTRY_TAXONOMY_KEY = 'industry-taxonomy';
+export const SALES_MODEL_OPTIONS_KEY = 'sales-model-options';
+export const PRODUCT_ATTRIBUTE_OPTIONS_KEY = 'product-attribute-options';
 
 export const useIndustryTaxonomyQuery = (
   config?: UseQueryOptions<IndustryTaxonomy>,
@@ -128,6 +147,24 @@ export const useIndustryTaxonomyQuery = (
   useQuery<IndustryTaxonomy>(
     [INDUSTRY_TAXONOMY_KEY],
     () => profileFetch<IndustryTaxonomy>('/industry-taxonomy'),
+    { staleTime: Infinity, refetchOnWindowFocus: false, ...config },
+  );
+
+export const useSalesModelOptionsQuery = (
+  config?: UseQueryOptions<IndustryOptionMap>,
+) =>
+  useQuery<IndustryOptionMap>(
+    [SALES_MODEL_OPTIONS_KEY],
+    () => profileFetch<IndustryOptionMap>('/sales-model-options'),
+    { staleTime: Infinity, refetchOnWindowFocus: false, ...config },
+  );
+
+export const useProductAttributeOptionsQuery = (
+  config?: UseQueryOptions<IndustryOptionMap>,
+) =>
+  useQuery<IndustryOptionMap>(
+    [PRODUCT_ATTRIBUTE_OPTIONS_KEY],
+    () => profileFetch<IndustryOptionMap>('/product-attribute-options'),
     { staleTime: Infinity, refetchOnWindowFocus: false, ...config },
   );
 

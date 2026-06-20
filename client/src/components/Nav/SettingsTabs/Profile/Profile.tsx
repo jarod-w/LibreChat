@@ -23,6 +23,7 @@ function Profile() {
     if (user) {
       setData({
         company_name: user.company_name ?? '',
+        company_website: user.company_website ?? '',
         industry_major: user.industry_major ?? '',
         contact_name: user.contact_name ?? '',
         phone: user.phone ?? '',
@@ -55,6 +56,13 @@ function Profile() {
               label={localize('com_onboarding_company_name')}
               value={data.company_name ?? ''}
               onChange={set('company_name')}
+            />
+            <Field
+              id="company_website"
+              label={localize('com_profile_company_website')}
+              value={data.company_website ?? ''}
+              onChange={set('company_website')}
+              placeholder={localize('com_profile_company_website_placeholder')}
             />
             <SelectField
               id="industry_major"

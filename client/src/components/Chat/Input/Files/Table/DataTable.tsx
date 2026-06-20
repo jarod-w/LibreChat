@@ -29,7 +29,9 @@ import {
   useMediaQuery,
 } from '@librechat/client';
 import type { TFile } from 'librechat-data-provider';
+import type { MyFile } from './Columns';
 import { ColumnVisibilityDropdown } from './ColumnVisibilityDropdown';
+import { useDeleteDocumentMutation } from '~/data-provider/Profile';
 import { useDeleteFilesFromTable } from '~/hooks/Files';
 import { useLocalize, TranslationKeys } from '~/hooks';
 import { cn } from '~/utils';
@@ -60,6 +62,7 @@ export default function DataTable<TData, TValue>({ columns, data }: DataTablePro
   const [isDeleting, setIsDeleting] = useState(false);
   const setFiles = useSetRecoilState(store.filesByIndex(0));
   const { deleteFiles } = useDeleteFilesFromTable(() => setIsDeleting(false));
+  const deleteDocument = useDeleteDocumentMutation();
 
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -98,11 +101,31 @@ export default function DataTable<TData, TValue>({ columns, data }: DataTablePro
           variant="outline"
           onClick={() => {
             setIsDeleting(true);
-            const filesToDelete = table
+            const selected = table
               .getFilteredSelectedRowModel()
-              .rows.map((row) => row.original);
-            deleteFiles({ files: filesToDelete as TFile[], setFiles });
+              .rows.map((row) => row.original) as MyFile[];
             setRowSelection({});
+
+            // 营销档案文档存于 kotlerapi，经 /api/kotler 代理删除；其余走 LibreChat 文件删除。
+            const profileDocs = selected.filter(
+              (file) => file.isProfileDocument && file.profileDocId != null,
+            );
+            const regularFiles = selected.filter((file) => !file.isProfileDocument);
+
+            if (profileDocs.length) {
+              Promise.allSettled(
+                profileDocs.map((doc) => deleteDocument.mutateAsync(doc.profileDocId as number)),
+              ).finally(() => {
+                if (!regularFiles.length) {
+                  setIsDeleting(false);
+                }
+              });
+            }
+            if (regularFiles.length) {
+              deleteFiles({ files: regularFiles as TFile[], setFiles });
+            } else if (!profileDocs.length) {
+              setIsDeleting(false);
+            }
           }}
           disabled={!table.getFilteredSelectedRowModel().rows.length || isDeleting}
           className={cn('min-w-[40px] transition-all duration-200', isSmallScreen && 'px-2 py-1')}
