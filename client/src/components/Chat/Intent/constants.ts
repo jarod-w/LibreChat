@@ -14,6 +14,10 @@ export interface IntentOption {
   group: 'primary' | 'more';
 }
 
+export function getIntentByKey(key: string): IntentOption | undefined {
+  return INTENTS.find((intent) => intent.key === key);
+}
+
 /** 一级意图（单选）：primary 默认显示，more 收在「更多」弹层 */
 export const INTENTS: IntentOption[] = [
   { key: 'seeding_graphic', labelKey: 'com_intent_seeding_graphic', group: 'primary' },

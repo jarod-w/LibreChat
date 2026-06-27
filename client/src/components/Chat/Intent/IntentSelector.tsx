@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { useRecoilState } from 'recoil';
 import { useLocalize } from '~/hooks';
 import store from '~/store';
@@ -8,9 +8,7 @@ import { INTENTS, INTENT_FUNCTIONS } from './constants';
 
 /**
  * Nucleant 意图选择器：一级意图条（含「更多」弹层）+ 选中后的意图职能多选条。
- * 设计文档: nucleant/markdown/intent-selector-design.md §4 / §7
- *
- * 放置在落地首屏欢迎卡 + 输入框上方（方案 B）。仅落地态展示。
+ * 落地态置于输入框下方（欢迎 → 输入 → 快捷入口）。
  */
 function IntentSelector() {
   const localize = useLocalize();
@@ -27,7 +25,6 @@ function IntentSelector() {
     (key: string) => {
       setShowMore(false);
       setActiveIntent((prev) => {
-        // 取消选中：再次点击当前意图 → 收起职能条
         if (prev === key) {
           setActiveIntentFunctions([]);
           return null;
@@ -47,31 +44,45 @@ function IntentSelector() {
     [setActiveIntentFunctions],
   );
 
-  const chipClass = (active: boolean) =>
+  const intentChipClass = (active: boolean) =>
     cn(
-      'whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm transition-colors duration-200',
+      'whitespace-nowrap rounded-full border px-4 py-2 text-sm transition-colors duration-200',
       active
         ? 'border-green-600/70 bg-green-50 font-medium text-green-700 dark:bg-green-950/30 dark:text-green-400'
         : 'border-border-medium text-text-secondary hover:bg-surface-tertiary',
     );
 
+  const functionChipClass = (active: boolean) =>
+    cn(
+      'inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-2.5 py-1 text-xs transition-colors duration-200',
+      active
+        ? 'border-border-medium bg-surface-tertiary font-normal text-text-primary'
+        : 'border-border-light text-text-tertiary hover:bg-surface-tertiary/60',
+    );
+
   return (
-    <div className="mx-auto mb-6 flex w-full max-w-3xl flex-col gap-3 px-4">
-      {/* 一级意图条 */}
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="mx-auto mt-4 flex w-full max-w-3xl flex-col gap-3 px-4">
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-border-light" />
+        <span className="shrink-0 text-xs text-text-tertiary">
+          {localize('com_intent_quick_create')}
+        </span>
+        <div className="h-px flex-1 bg-border-light" />
+      </div>
+
+      <div className="flex flex-wrap items-center justify-center gap-2">
         {primaryIntents.map((intent) => (
           <button
             key={intent.key}
             type="button"
             aria-pressed={activeIntent === intent.key}
             onClick={() => selectIntent(intent.key)}
-            className={chipClass(activeIntent === intent.key)}
+            className={intentChipClass(activeIntent === intent.key)}
           >
             {localize(intent.labelKey)}
           </button>
         ))}
 
-        {/* 更多 */}
         <div className="relative">
           <button
             type="button"
@@ -79,7 +90,7 @@ function IntentSelector() {
             aria-expanded={showMore}
             onClick={() => setShowMore((v) => !v)}
             className={cn(
-              chipClass(moreIntents.some((i) => i.key === activeIntent)),
+              intentChipClass(moreIntents.some((i) => i.key === activeIntent)),
               'inline-flex items-center gap-1',
             )}
           >
@@ -89,7 +100,6 @@ function IntentSelector() {
 
           {showMore && (
             <>
-              {/* 点击空白关闭 */}
               <div className="fixed inset-0 z-10" onClick={() => setShowMore(false)} />
               <div
                 role="menu"
@@ -117,24 +127,27 @@ function IntentSelector() {
         </div>
       </div>
 
-      {/* 意图职能条（选中意图后展开，多选） */}
       {activeIntent != null && (
         <div className="animate-fadeIn flex flex-col gap-2">
-          <span className="text-xs text-text-tertiary">
+          <span className="text-center text-xs text-text-tertiary">
             {localize('com_intent_functions_title')}
           </span>
-          <div className="flex flex-wrap items-center gap-2">
-            {INTENT_FUNCTIONS.map((fn) => (
-              <button
-                key={fn.key}
-                type="button"
-                aria-pressed={activeIntentFunctions.includes(fn.key)}
-                onClick={() => toggleFunction(fn.key)}
-                className={chipClass(activeIntentFunctions.includes(fn.key))}
-              >
-                {localize(fn.labelKey)}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
+            {INTENT_FUNCTIONS.map((fn) => {
+              const isActive = activeIntentFunctions.includes(fn.key);
+              return (
+                <button
+                  key={fn.key}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => toggleFunction(fn.key)}
+                  className={functionChipClass(isActive)}
+                >
+                  {isActive && <Check className="h-3 w-3 shrink-0" aria-hidden="true" />}
+                  {localize(fn.labelKey)}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

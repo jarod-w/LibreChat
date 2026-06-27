@@ -1,4 +1,5 @@
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
+import { useRecoilValue } from 'recoil';
 import { easings } from '@react-spring/web';
 import { EModelEndpoint } from 'librechat-data-provider';
 import { BirthdayIcon, TooltipAnchor, SplitText } from '@librechat/client';
@@ -6,7 +7,8 @@ import { useChatContext, useAgentsMapContext, useAssistantsMapContext } from '~/
 import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
 import ConvoIcon from '~/components/Endpoints/ConvoIcon';
 import { useLocalize, useAuthContext } from '~/hooks';
-import { getIconEndpoint, getEntity } from '~/utils';
+import { getIconEndpoint, getEntity, cn } from '~/utils';
+import store from '~/store';
 
 const containerClassName =
   'shadow-stroke relative flex h-full items-center justify-center rounded-full bg-white dark:bg-presentation dark:text-white text-black dark:after:shadow-none ';
@@ -35,6 +37,8 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const { data: endpointsConfig } = useGetEndpointsQuery();
   const { user } = useAuthContext();
   const localize = useLocalize();
+  const activeIntent = useRecoilValue(store.activeIntent);
+  const isIntentSelected = activeIntent != null;
 
   const [textHasMultipleLines, setTextHasMultipleLines] = useState(false);
   const [lineCount, setLineCount] = useState(1);
@@ -139,7 +143,13 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
 
   return (
     <div
-      className={`flex h-full transform-gpu flex-col items-center justify-center pb-16 transition-all duration-200 ${centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full'} ${getDynamicMargin}`}
+      className={cn(
+        'flex h-full transform-gpu flex-col items-center justify-center transition-all duration-300 ease-in-out',
+        centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full',
+        isIntentSelected
+          ? 'pointer-events-none mb-0 max-h-0 scale-95 overflow-hidden pb-0 opacity-0'
+          : cn('pb-16 opacity-100', getDynamicMargin),
+      )}
     >
       <div ref={contentRef} className="flex flex-col items-center gap-0 p-2">
         <div

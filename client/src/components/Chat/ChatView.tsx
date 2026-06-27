@@ -93,8 +93,6 @@ function ChatView({ index = 0 }: { index?: number }) {
                       : 'h-full overflow-y-auto',
                   )}
                 >
-                  {/* Nucleant 意图选择器：落地态置于欢迎卡 + 输入框上方（方案 B） */}
-                  {isLandingPage && <IntentSelector />}
                   {content}
                   <div
                     className={cn(
@@ -103,6 +101,7 @@ function ChatView({ index = 0 }: { index?: number }) {
                     )}
                   >
                     <ChatForm index={index} />
+                    {isLandingPage && <IntentSelector />}
                     {isLandingPage ? <ConversationStarters /> : <Footer />}
                   </div>
                 </div>

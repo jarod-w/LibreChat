@@ -17,6 +17,7 @@ import useFileHandling from '~/hooks/Files/useFileHandling';
 import { useInteractionHealthCheck } from '~/data-provider';
 import { useChatContext } from '~/Providers/ChatContext';
 import { globalAudioId } from '~/common';
+import { getIntentByKey } from '~/components/Chat/Intent/constants';
 import { useLocalize } from '~/hooks';
 import store from '~/store';
 
@@ -45,6 +46,7 @@ export default function useTextarea({
   const { index, conversation, isSubmitting, filesLoading, setFilesLoading } = useChatContext();
   const latestMessage = useRecoilValue(store.latestMessageFamily(index));
   const [activePrompt, setActivePrompt] = useRecoilState(store.activePromptByIndex(index));
+  const activeIntent = useRecoilValue(store.activeIntent);
 
   const { endpoint = '' } = conversation || {};
   const { entity, isAgent, isAssistant } = getEntity({
@@ -94,6 +96,13 @@ export default function useTextarea({
         return localize('com_endpoint_message_not_appendable');
       }
 
+      const selectedIntent = activeIntent ? getIntentByKey(activeIntent) : undefined;
+      if (selectedIntent) {
+        return localize('com_intent_input_placeholder', {
+          0: localize(selectedIntent.labelKey),
+        });
+      }
+
       const sender =
         isAssistant || isAgent
           ? getEntityName({ name: entityName, isAgent, localize })
@@ -136,6 +145,7 @@ export default function useTextarea({
     conversation,
     latestMessage,
     isNotAppendable,
+    activeIntent,
   ]);
 
   const handleKeyDown = useCallback(
