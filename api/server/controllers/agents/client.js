@@ -56,6 +56,23 @@ const { loadAgent } = require('~/models/Agent');
 const { getMCPManager } = require('~/config');
 const db = require('~/models');
 
+/**
+ * Fields forwarded to KotlerAPI via {{LIBRECHAT_BODY_*}} header placeholders.
+ * Must stay in sync with packages/api/src/utils/env.ts ALLOWED_BODY_FIELDS.
+ */
+function buildKotlerRequestBody(req, ids = {}) {
+  const body = req?.body ?? {};
+  return {
+    messageId: ids.messageId,
+    conversationId: ids.conversationId,
+    parentMessageId: ids.parentMessageId,
+    brandId: body.brandId,
+    productId: body.productId,
+    intent: body.intent,
+    intentFunctions: body.intentFunctions,
+  };
+}
+
 class AgentClient extends BaseClient {
   constructor(options = {}) {
     super(null, options);
@@ -731,13 +748,11 @@ class AgentClient extends BaseClient {
           last_agent_index: this.agentConfigs?.size ?? 0,
           user_id: this.user ?? this.options.req.user?.id,
           hide_sequential_outputs: this.options.agent.hide_sequential_outputs,
-          requestBody: {
+          requestBody: buildKotlerRequestBody(this.options.req, {
             messageId: this.responseMessageId,
             conversationId: this.conversationId,
             parentMessageId: this.parentMessageId,
-            brandId: this.options.req.body?.brandId,
-            productId: this.options.req.body?.productId,
-          },
+          }),
           user: createSafeUser(this.options.req.user),
         },
         recursionLimit: agentsEConfig?.recursionLimit ?? 50,
@@ -1042,11 +1057,11 @@ class AgentClient extends BaseClient {
       clientOptions.configuration.defaultHeaders = resolveHeaders({
         headers: clientOptions.configuration.defaultHeaders,
         user: createSafeUser(this.options.req?.user),
-        body: {
+        body: buildKotlerRequestBody(this.options.req, {
           messageId: this.responseMessageId,
           conversationId: this.conversationId,
           parentMessageId: this.parentMessageId,
-        },
+        }),
       });
     }
 
