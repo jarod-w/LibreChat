@@ -10,6 +10,7 @@ import {
 } from '~/components/Auth';
 import { MarketplaceProvider } from '~/components/Agents/MarketplaceContext';
 import AgentMarketplace from '~/components/Agents/Marketplace';
+import { ExecutionSpeedWizard } from '~/components/ExecutionSpeed';
 import { OAuthSuccess, OAuthError } from '~/components/OAuth';
 import { OnboardingWizard } from '~/components/Onboarding';
 import { AuthContextProvider } from '~/hooks/AuthContext';
@@ -111,6 +112,10 @@ export const router = createBrowserRouter(
             {
               path: 'c/:conversationId?',
               element: <ChatRoute />,
+            },
+            {
+              path: 'execution-speed',
+              element: <ExecutionSpeedWizard />,
             },
             {
               path: 'search',

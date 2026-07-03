@@ -122,6 +122,8 @@ export type TPayload = Partial<TMessage> &
     intent?: string | null;
     /** Nucleant: selected intent-function keys, comma-joined, forwarded as X-Intent-Functions */
     intentFunctions?: string | null;
+    /** Nucleant: confirmed execution-speed plan id, forwarded as X-Execution-Speed-Plan-Id */
+    executionSpeedPlanId?: string | null;
   };
 
 export type TEditedContent =
@@ -159,6 +161,8 @@ export type TSubmission = {
   intent?: string | null;
   /** Nucleant: selected intent-function keys, comma-joined, forwarded as X-Intent-Functions */
   intentFunctions?: string | null;
+  /** Nucleant: confirmed execution-speed plan id, forwarded as X-Execution-Speed-Plan-Id */
+  executionSpeedPlanId?: string | null;
 };
 
 export type EventSubmission = Omit<TSubmission, 'initialResponse'> & { initialResponse: TMessage };

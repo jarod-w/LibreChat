@@ -375,6 +375,10 @@ endpoints:
         #   (intentFunctions 为逗号分隔的 key 串)。详见 kotlerapi/markdown/intent_selector_backend.design.md
         X-Intent: '{{LIBRECHAT_BODY_INTENT}}'
         X-Intent-Functions: '{{LIBRECHAT_BODY_INTENTFUNCTIONS}}'
+        # 执行速：向导确认后前端把 executionSpeedPlanId 写进 body,经占位符注入 header
+        #   → kotlerapi 读 X-Execution-Speed-Plan-Id,命中 confirmed 计划即触发批量生成。
+        #   详见 kotlerapi/markdown/execution_speed_plan.design.md §4.3
+        X-Execution-Speed-Plan-Id: '{{LIBRECHAT_BODY_EXECUTIONSPEEDPLANID}}'
       models:
         default: ['kotler-marketing-agent']
         fetch: false

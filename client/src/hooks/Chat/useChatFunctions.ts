@@ -74,6 +74,7 @@ export default function useChatFunctions({
   const activeProductId = useRecoilValue(store.activeProductId);
   const activeIntent = useRecoilValue(store.activeIntent);
   const activeIntentFunctions = useRecoilValue(store.activeIntentFunctions);
+  const activeExecutionSpeedPlanId = useRecoilValue(store.activeExecutionSpeedPlanId);
   const { getExpiry } = useUserKey(immutableConversation?.endpoint ?? '');
   const setIsSubmitting = useSetRecoilState(store.isSubmittingFamily(index));
   const setShowStopButton = useSetRecoilState(store.showStopButtonByIndex(index));
@@ -339,6 +340,7 @@ export default function useChatFunctions({
       productId: activeProductId,
       intent: activeIntent,
       intentFunctions: activeIntentFunctions.length ? activeIntentFunctions.join(',') : null,
+      executionSpeedPlanId: activeExecutionSpeedPlanId,
     };
 
     if (isRegenerate) {

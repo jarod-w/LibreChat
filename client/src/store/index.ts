@@ -14,6 +14,7 @@ import misc from './misc';
 import isTemporary from './temporary';
 import brandProduct from './brandProduct';
 import intent from './intent';
+import executionSpeed from './executionSpeed';
 export * from './agents';
 export * from './mcp';
 export * from './favorites';
@@ -35,4 +36,5 @@ export default {
   ...isTemporary,
   ...brandProduct,
   ...intent,
+  ...executionSpeed,
 };

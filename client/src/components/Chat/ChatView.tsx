@@ -8,6 +8,7 @@ import type { TMessage } from 'librechat-data-provider';
 import type { ChatFormValues } from '~/common';
 import { ChatContext, AddedChatContext, useFileMapContext, ChatFormProvider } from '~/Providers';
 import { useAddedResponse, useResumeOnLoad, useAdaptiveSSE, useChatHelpers } from '~/hooks';
+import { ExecutionSpeedEntry, ExecutionSpeedAutoStart } from '~/components/ExecutionSpeed';
 import ConversationStarters from './Input/ConversationStarters';
 import { useGetMessagesByConvoId } from '~/data-provider';
 import MessagesView from './Messages/MessagesView';
@@ -81,6 +82,7 @@ function ChatView({ index = 0 }: { index?: number }) {
     <ChatFormProvider {...methods}>
       <ChatContext.Provider value={chatHelpers}>
         <AddedChatContext.Provider value={addedChatHelpers}>
+          <ExecutionSpeedAutoStart isLandingPage={isLandingPage} />
           <Presentation>
             <div className="relative flex h-full w-full flex-col">
               {!isLoading && <Header />}
@@ -102,6 +104,7 @@ function ChatView({ index = 0 }: { index?: number }) {
                   >
                     <ChatForm index={index} />
                     {isLandingPage && <IntentSelector />}
+                    {isLandingPage && <ExecutionSpeedEntry />}
                     {isLandingPage ? <ConversationStarters /> : <Footer />}
                   </div>
                 </div>

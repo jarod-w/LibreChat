@@ -18,6 +18,7 @@ export default function createPayload(submission: t.TSubmission) {
     productId,
     intent,
     intentFunctions,
+    executionSpeedPlanId,
   } = submission;
   const { conversationId } = s.tConvoUpdateSchema.parse(conversation);
   const { endpoint: _e, endpointType } = endpointOption as {
@@ -48,6 +49,7 @@ export default function createPayload(submission: t.TSubmission) {
     productId,
     intent,
     intentFunctions,
+    executionSpeedPlanId,
   };
 
   return { server, payload };

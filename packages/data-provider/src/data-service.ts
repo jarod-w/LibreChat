@@ -1084,6 +1084,31 @@ export const getActiveJobs = (): Promise<ActiveJobsResponse> => {
   return request.get(endpoints.activeJobs());
 };
 
+/** Nucleant execution-speed batch: per-piece structured result (kotlerapi §4.4) */
+export interface KotlerResultPiece {
+  piece_key: string;
+  label: string;
+  agent: string;
+  production_status: string;
+  copy_markdown: string | null;
+  image_plan_markdown: string | null;
+  placeholders: string[];
+  error: string | null;
+}
+
+/** Nucleant execution-speed batch: structured content pack (preferred over merged `result`) */
+export interface KotlerResultPack {
+  verdict: string;
+  battle_plan_markdown: string | null;
+  pieces: KotlerResultPiece[];
+}
+
+export interface KotlerJobProgress {
+  done: number;
+  total: number;
+  current_label?: string | null;
+}
+
 export interface KotlerJobStatus {
   status: 'pending' | 'done' | 'failed';
   result?: string;
@@ -1094,6 +1119,11 @@ export interface KotlerJobStatus {
   industry_minor?: string;
   created_at?: string;
   completed_at?: string;
+  /** Nucleant execution-speed batch job fields */
+  kind?: string;
+  plan_id?: string;
+  progress?: KotlerJobProgress;
+  result_pack?: KotlerResultPack;
 }
 
 export const getKotlerJobStatus = (jobId: string): Promise<KotlerJobStatus> => {

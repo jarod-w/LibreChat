@@ -70,6 +70,7 @@ function buildKotlerRequestBody(req, ids = {}) {
     productId: body.productId,
     intent: body.intent,
     intentFunctions: body.intentFunctions,
+    executionSpeedPlanId: body.executionSpeedPlanId,
   };
 }
 

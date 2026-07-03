@@ -115,6 +115,7 @@ const ALLOWED_BODY_FIELDS = [
   'productId',
   'intent',
   'intentFunctions',
+  'executionSpeedPlanId',
 ] as const;
 
 /**

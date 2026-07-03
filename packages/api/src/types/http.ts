@@ -24,6 +24,8 @@ export type RequestBody = {
   intent?: string;
   /** Nucleant: selected intent-function keys, comma-joined, forwarded as X-Intent-Functions */
   intentFunctions?: string;
+  /** Nucleant: confirmed execution-speed plan id, forwarded as X-Execution-Speed-Plan-Id */
+  executionSpeedPlanId?: string;
 };
 
 export type ServerRequest = Request<unknown, unknown, RequestBody> & {

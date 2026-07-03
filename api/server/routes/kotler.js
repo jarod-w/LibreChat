@@ -67,6 +67,42 @@ router.post('/profile/documents/extract', requireJwtAuth, async (req, res) => {
   }
 });
 
+/**
+ * 执行速代理:ALL /api/kotler/execution-speed/* → kotlerapi /v1/execution-speed/*(需登录)。
+ * 约定:浏览器把 brandId/productId 放在 body(共享 request 实例不便带自定义 header),
+ * 由本代理提升为 X-Brand-Id / X-Product-Id;kotlerapi 侧 Pydantic 忽略 body 里的多余字段。
+ * /plan 内含档案加载 + 规则推荐,超时给 30s。
+ * 设计文档: kotlerapi/markdown/execution_speed_plan.design.md §4.1 §4.2
+ */
+router.use('/execution-speed', requireJwtAuth, async (req, res) => {
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${KOTLER_API_KEY}`,
+      'X-LibreChat-User-Id': req.user.id,
+    };
+    const brandId = req.body?.brandId;
+    const productId = req.body?.productId;
+    if (brandId != null) {
+      headers['X-Brand-Id'] = String(brandId);
+    }
+    if (productId != null) {
+      headers['X-Product-Id'] = String(productId);
+    }
+    const response = await axios({
+      method: req.method,
+      url: `${KOTLER_API_URL}/v1/execution-speed${req.url}`,
+      data: req.body,
+      timeout: 30000,
+      headers,
+      validateStatus: () => true,
+    });
+    res.status(response.status).json(response.data);
+  } catch (err) {
+    res.status(502).json({ error: 'Failed to reach kotlerapi execution-speed service' });
+  }
+});
+
 router.use('/profile', requireJwtAuth, async (req, res) => {
   try {
     const response = await axios({
