@@ -106,7 +106,7 @@ export default function FactsStep({
         label={localize('com_execspeed_channels_label')}
         value={channels}
         onChange={onChannelsChange}
-        placeholder="e.g. 小红书, 美团团购, 私域微信"
+        placeholder={localize('com_execspeed_channels_placeholder')}
       />
       <Field
         id="es-forbidden"
@@ -114,7 +114,7 @@ export default function FactsStep({
         value={forbidden}
         onChange={onForbiddenChange}
         multiline
-        placeholder="e.g. 最正宗, 全网最低价"
+        placeholder={localize('com_execspeed_forbidden_placeholder')}
       />
     </div>
   );
