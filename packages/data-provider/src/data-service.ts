@@ -1129,3 +1129,21 @@ export interface KotlerJobStatus {
 export const getKotlerJobStatus = (jobId: string): Promise<KotlerJobStatus> => {
   return request.get(endpoints.kotlerJob(jobId));
 };
+
+/** Nucleant: deferred title generation once an async job resolves */
+export interface GenTitleFromJobRequest {
+  conversationId: string;
+  messageId?: string;
+}
+
+export interface GenTitleFromJobResponse {
+  title: string | null;
+  skipped?: string;
+}
+
+export const genTitleFromJob = (
+  payload: GenTitleFromJobRequest,
+): Promise<GenTitleFromJobResponse> => {
+  const { conversationId, messageId } = payload;
+  return request.post(endpoints.genTitleFromJob(conversationId), { messageId });
+};

@@ -10,9 +10,30 @@ const {
   checkAndIncrementPendingRequest,
 } = require('@librechat/api');
 const { disposeClient, clientRegistry, requestDataMap } = require('~/server/cleanup');
+const { hasNucleantPendingMarker } = require('~/server/services/nucleantPending');
 const { handleAbortError } = require('~/server/middleware');
 const { logViolation } = require('~/cache');
 const { saveMessage } = require('~/models');
+
+/**
+ * Whether the assistant response is a kotlerapi async-job placeholder rather than
+ * final content. Title generation must be skipped for these — the real content is
+ * produced later by the background job, and titling the placeholder yields a constant,
+ * meaningless title. The frontend re-triggers titling once the job resolves.
+ * @param {{ text?: string }} response
+ * @param {{ contentParts?: Array<{ type?: string, text?: string }> }} client
+ * @returns {boolean}
+ */
+function isPendingJobResponse(response, client) {
+  if (hasNucleantPendingMarker(response?.text)) {
+    return true;
+  }
+  const parts = client?.contentParts;
+  return (
+    Array.isArray(parts) &&
+    parts.some((part) => part?.type === 'text' && hasNucleantPendingMarker(part.text))
+  );
+}
 
 function createCloseHandler(abortController) {
   return function (manual) {
@@ -267,7 +288,8 @@ const ResumableAgentController = async (req, res, next, initializeClient, addTit
           addTitle &&
           parentMessageId === Constants.NO_PARENT &&
           isNewConvo &&
-          !wasAbortedBeforeComplete;
+          !wasAbortedBeforeComplete &&
+          !isPendingJobResponse(response, client);
 
         // Save user message BEFORE sending final event to avoid race condition
         // where client refetch happens before database is updated
@@ -696,7 +718,12 @@ const _LegacyAgentController = async (req, res, next, initializeClient, addTitle
     }
 
     // Add title if needed - extract minimal data
-    if (addTitle && parentMessageId === Constants.NO_PARENT && isNewConvo) {
+    if (
+      addTitle &&
+      parentMessageId === Constants.NO_PARENT &&
+      isNewConvo &&
+      !isPendingJobResponse(response, client)
+    ) {
       addTitle(req, {
         text,
         response: { ...response },

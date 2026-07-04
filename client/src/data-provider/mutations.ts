@@ -39,6 +39,29 @@ export const useUpdateConversationMutation = (
   );
 };
 
+export const useGenTitleFromJobMutation = (): UseMutationResult<
+  t.GenTitleFromJobResponse,
+  unknown,
+  t.GenTitleFromJobRequest,
+  unknown
+> => {
+  const queryClient = useQueryClient();
+  return useMutation((payload: t.GenTitleFromJobRequest) => dataService.genTitleFromJob(payload), {
+    onSuccess: (response, payload) => {
+      const { title } = response;
+      if (!title) {
+        return;
+      }
+      const { conversationId } = payload;
+      queryClient.setQueryData<t.TConversation>(
+        [QueryKeys.conversation, conversationId],
+        (convo) => (convo ? { ...convo, title } : convo),
+      );
+      updateConvoInAllQueries(queryClient, conversationId, (convo) => ({ ...convo, title }));
+    },
+  });
+};
+
 export const useTagConversationMutation = (
   conversationId: string,
   options?: t.updateTagsInConvoOptions,

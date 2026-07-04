@@ -43,6 +43,8 @@ export type {
   KotlerJobProgress,
   KotlerResultPack,
   KotlerResultPiece,
+  GenTitleFromJobRequest,
+  GenTitleFromJobResponse,
 } from './data-service';
 import * as dataService from './data-service';
 /* general helpers */

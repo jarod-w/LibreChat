@@ -16,8 +16,17 @@
 const axios = require('axios');
 const { logger } = require('@librechat/data-schemas');
 
+const PENDING_MARKER = '<nucleant:pending>';
 const PENDING_RE = /<nucleant:pending>(\{[\s\S]*?\})<\/nucleant:pending>/g;
 const RESOLVE_TIMEOUT_MS = 3000;
+
+/**
+ * @param {string | undefined | null} text
+ * @returns {boolean} whether the text carries an unresolved kotlerapi pending marker
+ */
+function hasNucleantPendingMarker(text) {
+  return typeof text === 'string' && text.indexOf(PENDING_MARKER) !== -1;
+}
 
 const KOTLER_API_URL = (process.env.KOTLER_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
@@ -38,7 +47,7 @@ async function fetchJobStatus(jobId) {
  * @returns {Promise<string | undefined | null>}
  */
 async function resolveNucleantPendingMarkers(text) {
-  if (typeof text !== 'string' || text.indexOf('<nucleant:pending>') === -1) {
+  if (!hasNucleantPendingMarker(text)) {
     return text;
   }
 
@@ -76,4 +85,4 @@ async function resolveNucleantPendingMarkers(text) {
   return resolved;
 }
 
-module.exports = { resolveNucleantPendingMarkers };
+module.exports = { PENDING_MARKER, hasNucleantPendingMarker, resolveNucleantPendingMarkers };

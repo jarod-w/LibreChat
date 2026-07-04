@@ -1,7 +1,10 @@
+import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Spinner } from '@librechat/client';
 import { QueryKeys, dataService } from 'librechat-data-provider';
 import type { KotlerJobStatus } from 'librechat-data-provider';
+import { useGenTitleFromJobMutation } from '~/data-provider';
+import { useMessageContext } from '~/Providers';
 import ContentPackCard from './ContentPackCard';
 import { useLocalize } from '~/hooks';
 import { Text } from './Parts';
@@ -17,6 +20,9 @@ type Props = {
 
 export default function KotlerPendingResult({ jobId, pendingMessage, isCreatedByUser }: Props) {
   const localize = useLocalize();
+  const { conversationId, messageId } = useMessageContext();
+  const genTitleFromJob = useGenTitleFromJobMutation();
+  const titleRequestedRef = useRef(false);
 
   const { data, error, isLoading } = useQuery<KotlerJobStatus>({
     queryKey: [QueryKeys.kotlerJob, jobId],
@@ -30,6 +36,19 @@ export default function KotlerPendingResult({ jobId, pendingMessage, isCreatedBy
     staleTime: 0,
     retry: 1,
   });
+
+  /**
+   * The live title path is skipped for pending job responses; once the job
+   * resolves, ask the backend to settle the message and title the conversation
+   * from the real content. Fires once per mounted result.
+   */
+  useEffect(() => {
+    if (data?.status !== 'done' || titleRequestedRef.current || !conversationId) {
+      return;
+    }
+    titleRequestedRef.current = true;
+    genTitleFromJob.mutate({ conversationId, messageId });
+  }, [data?.status, conversationId, messageId, genTitleFromJob]);
 
   if (error) {
     return (

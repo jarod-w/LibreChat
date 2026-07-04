@@ -96,6 +96,30 @@ router.get('/gen_title/:conversationId', async (req, res) => {
   }
 });
 
+/**
+ * POST /gen_title_from_job/:conversationId
+ * Deferred title generation for kotlerapi async-job conversations. Called by the
+ * frontend once a `<nucleant:pending>` job resolves; settles the placeholder
+ * message with the real content and generates a title from it. Idempotent.
+ */
+router.post('/gen_title_from_job/:conversationId', configMiddleware, async (req, res) => {
+  const { conversationId } = req.params;
+  const { messageId } = req.body ?? {};
+  try {
+    // Lazily required: pulls in the agents/initializeClient chain, which is heavy
+    // and only needed when this route is actually invoked.
+    const regenerateTitleFromJob = require('~/server/services/Endpoints/agents/regenerateTitle');
+    const result = await regenerateTitleFromJob(req, { conversationId, messageId });
+    if (result.status === 404) {
+      return res.status(404).json({ message: 'Conversation or messages not found' });
+    }
+    return res.status(200).json({ title: result.title ?? null, skipped: result.skipped });
+  } catch (error) {
+    logger.error('[POST /gen_title_from_job] Error generating title', error);
+    return res.status(500).json({ message: 'Error generating title' });
+  }
+});
+
 router.delete('/', async (req, res) => {
   let filter = {};
   const { conversationId, source, thread_id, endpoint } = req.body?.arg ?? {};

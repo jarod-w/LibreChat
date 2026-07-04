@@ -112,6 +112,9 @@ export const conversationById = (id: string) => `${conversationsRoot}/${id}`;
 export const genTitle = (conversationId: string) =>
   `${conversationsRoot}/gen_title/${encodeURIComponent(conversationId)}`;
 
+export const genTitleFromJob = (conversationId: string) =>
+  `${conversationsRoot}/gen_title_from_job/${encodeURIComponent(conversationId)}`;
+
 export const updateConversation = () => `${conversationsRoot}/update`;
 
 export const archiveConversation = () => `${conversationsRoot}/archive`;
