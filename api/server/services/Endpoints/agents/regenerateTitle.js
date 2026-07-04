@@ -2,6 +2,7 @@ const { logger } = require('@librechat/data-schemas');
 const { CacheKeys, Constants } = require('librechat-data-provider');
 const { createRun, createSafeUser, createTokenCounter } = require('@librechat/api');
 const {
+  resolveContentParts,
   hasNucleantPendingMarker,
   resolveNucleantPendingMarkers,
 } = require('~/server/services/nucleantPending');
@@ -37,33 +38,6 @@ function joinTextParts(content) {
     .filter((part) => part?.type === 'text' && typeof part.text === 'string')
     .map((part) => part.text)
     .join('\n');
-}
-
-/**
- * Resolves every kotlerapi pending marker inside a message's content parts against
- * the now-completed job, returning the new parts plus whether anything changed.
- * @param {Array<{ type?: string, text?: string }> | undefined} content
- * @returns {Promise<{ content: Array | undefined, changed: boolean }>}
- */
-async function resolveContentParts(content) {
-  if (!Array.isArray(content)) {
-    return { content, changed: false };
-  }
-  let changed = false;
-  const resolved = await Promise.all(
-    content.map(async (part) => {
-      if (part?.type !== 'text' || !hasNucleantPendingMarker(part.text)) {
-        return part;
-      }
-      const text = await resolveNucleantPendingMarkers(part.text);
-      if (text !== part.text) {
-        changed = true;
-        return { ...part, text };
-      }
-      return part;
-    }),
-  );
-  return { content: resolved, changed };
 }
 
 /**
@@ -195,7 +169,7 @@ async function regenerateTitleFromJob(req, { conversationId, messageId }) {
     (Array.isArray(resolvedContent) &&
       resolvedContent.some((part) => part?.type === 'text' && hasNucleantPendingMarker(part.text)));
 
-  if (stillPending || (!textChanged && !contentChanged)) {
+  if (stillPending) {
     return { skipped: 'job-not-done' };
   }
 

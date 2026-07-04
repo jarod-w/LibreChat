@@ -48,6 +48,7 @@ const namespaces = {
   [CacheKeys.AUDIO_RUNS]: standardCache(CacheKeys.AUDIO_RUNS, Time.TEN_MINUTES),
   [CacheKeys.MESSAGES]: standardCache(CacheKeys.MESSAGES, Time.ONE_MINUTE),
   [CacheKeys.FLOWS]: standardCache(CacheKeys.FLOWS, Time.ONE_MINUTE * 10),
+  [CacheKeys.NUCLEANT_PENDING_JOBS]: standardCache(CacheKeys.NUCLEANT_PENDING_JOBS, Time.ONE_DAY),
   [CacheKeys.OPENID_EXCHANGED_TOKENS]: standardCache(
     CacheKeys.OPENID_EXCHANGED_TOKENS,
     Time.TEN_MINUTES,

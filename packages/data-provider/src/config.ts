@@ -1446,6 +1446,11 @@ export enum CacheKeys {
    */
   FLOWS = 'FLOWS',
   /**
+   * Key mapping a kotlerapi async job id to the LibreChat message it settles into,
+   * so the job-complete webhook can find and resolve the right pending message.
+   */
+  NUCLEANT_PENDING_JOBS = 'NUCLEANT_PENDING_JOBS',
+  /**
    * Key for pending chat requests (concurrency check)
    */
   PENDING_REQ = 'PENDING_REQ',

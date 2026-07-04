@@ -12,12 +12,39 @@
  */
 const express = require('express');
 const axios = require('axios');
+const { logger } = require('@librechat/data-schemas');
 const { requireJwtAuth } = require('~/server/middleware');
+const { settlePendingJobById } = require('~/server/services/nucleantPending');
 
 const router = express.Router();
 
 const KOTLER_API_URL = (process.env.KOTLER_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 const KOTLER_API_KEY = process.env.KOTLER_API_KEY || '';
+const KOTLER_WEBHOOK_SECRET = process.env.KOTLER_WEBHOOK_SECRET || '';
+
+/**
+ * kotlerapi 长任务终态回调:job 完成/失败时把正文落库到对应消息,
+ * 使重开历史对话不再依赖 kotlerapi 的 2h Redis job(避免 "Result has expired")。
+ *
+ * 无需登录(外部服务调用),改用共享密钥校验 X-Kotler-Webhook-Secret。
+ * 幂等:找不到映射/消息即视为已处理,返回 200。必须在 requireJwtAuth 路由之前注册。
+ */
+router.post('/webhook/job-complete', async (req, res) => {
+  if (!KOTLER_WEBHOOK_SECRET || req.get('X-Kotler-Webhook-Secret') !== KOTLER_WEBHOOK_SECRET) {
+    return res.status(401).json({ error: 'Invalid webhook secret' });
+  }
+  const jobId = req.body?.job_id;
+  if (!jobId) {
+    return res.status(400).json({ error: 'Missing job_id' });
+  }
+  try {
+    const result = await settlePendingJobById(jobId);
+    return res.status(200).json(result);
+  } catch (err) {
+    logger.error(`[kotler webhook] failed to settle job ${jobId}`, err);
+    return res.status(500).json({ error: 'Failed to settle job' });
+  }
+});
 
 router.get('/jobs/:jobId', async (req, res) => {
   const { jobId } = req.params;

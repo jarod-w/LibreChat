@@ -85,4 +85,165 @@ async function resolveNucleantPendingMarkers(text) {
   return resolved;
 }
 
-module.exports = { PENDING_MARKER, hasNucleantPendingMarker, resolveNucleantPendingMarkers };
+/**
+ * Resolves every kotlerapi pending marker inside a message's content parts against
+ * the now-completed job, returning the new parts plus whether anything changed.
+ * @param {Array<{ type?: string, text?: string }> | undefined} content
+ * @returns {Promise<{ content: Array | undefined, changed: boolean }>}
+ */
+async function resolveContentParts(content) {
+  if (!Array.isArray(content)) {
+    return { content, changed: false };
+  }
+  let changed = false;
+  const resolved = await Promise.all(
+    content.map(async (part) => {
+      if (part?.type !== 'text' || !hasNucleantPendingMarker(part.text)) {
+        return part;
+      }
+      const text = await resolveNucleantPendingMarkers(part.text);
+      if (text !== part.text) {
+        changed = true;
+        return { ...part, text };
+      }
+      return part;
+    }),
+  );
+  return { content: resolved, changed };
+}
+
+/**
+ * Collects every kotlerapi job id embedded in a text blob's pending markers.
+ * @param {string | undefined | null} text
+ * @param {Set<string>} out
+ */
+function collectJobIds(text, out) {
+  if (!hasNucleantPendingMarker(text)) {
+    return;
+  }
+  for (const match of text.matchAll(PENDING_RE)) {
+    try {
+      const jobId = JSON.parse(match[1]).job_id;
+      if (jobId) {
+        out.add(jobId);
+      }
+    } catch {
+      logger.warn(`[nucleantPending] failed to parse marker payload: ${match[1]}`);
+    }
+  }
+}
+
+/**
+ * Records `jobId → { conversationId, messageId, user }` so the kotlerapi
+ * job-complete webhook can later find and settle the right pending message.
+ * Best-effort: any failure is logged and swallowed — never breaks message save.
+ *
+ * @param {object} params
+ * @param {string | undefined | null} params.text
+ * @param {Array<{ type?: string, text?: string }> | undefined} [params.content]
+ * @param {string} params.conversationId
+ * @param {string} params.messageId
+ * @param {string} params.user - the owning user id
+ * @returns {Promise<void>}
+ */
+async function recordPendingJobMapping({ text, content, conversationId, messageId, user }) {
+  try {
+    if (!conversationId || !messageId || !user) {
+      return;
+    }
+    const jobIds = new Set();
+    collectJobIds(text, jobIds);
+    if (Array.isArray(content)) {
+      for (const part of content) {
+        if (part?.type === 'text') {
+          collectJobIds(part.text, jobIds);
+        }
+      }
+    }
+    if (jobIds.size === 0) {
+      return;
+    }
+    const getLogStores = require('~/cache/getLogStores');
+    const { CacheKeys } = require('librechat-data-provider');
+    const cache = getLogStores(CacheKeys.NUCLEANT_PENDING_JOBS);
+    await Promise.all(
+      [...jobIds].map((jobId) => cache.set(jobId, { conversationId, messageId, user })),
+    );
+  } catch (err) {
+    logger.warn(`[nucleantPending] failed to record job mapping: ${err?.message}`);
+  }
+}
+
+/**
+ * Settles a pending message once its kotlerapi job reaches a terminal state.
+ * Looks up the recorded mapping for `jobId`, re-resolves the marker against the
+ * now-finished job, and writes the real content into the Mongo message so future
+ * re-opens never re-poll (and never hit the expired-job 404).
+ *
+ * Idempotent and safe to call from the unauthenticated webhook: it derives the
+ * owning user from the stored mapping and never trusts caller-supplied identity.
+ *
+ * @param {string} jobId
+ * @returns {Promise<{ settled: boolean, changed?: boolean, reason?: string }>}
+ */
+async function settlePendingJobById(jobId) {
+  if (!jobId) {
+    return { settled: false, reason: 'no-job-id' };
+  }
+  const getLogStores = require('~/cache/getLogStores');
+  const { CacheKeys } = require('librechat-data-provider');
+  const { getMessages, updateMessage } = require('~/models');
+
+  const cache = getLogStores(CacheKeys.NUCLEANT_PENDING_JOBS);
+  const mapping = await cache.get(jobId);
+  if (!mapping) {
+    return { settled: false, reason: 'no-mapping' };
+  }
+
+  const { conversationId, messageId, user } = mapping;
+  const messages = await getMessages({ conversationId, user });
+  const aiMessage = messages?.find((message) => message.messageId === messageId);
+  if (!aiMessage) {
+    await cache.delete(jobId);
+    return { settled: false, reason: 'message-gone' };
+  }
+
+  const resolvedText = await resolveNucleantPendingMarkers(aiMessage.text);
+  const { content: resolvedContent, changed: contentChanged } = await resolveContentParts(
+    aiMessage.content,
+  );
+  const textChanged = resolvedText !== aiMessage.text;
+
+  const stillPending =
+    hasNucleantPendingMarker(resolvedText) ||
+    (Array.isArray(resolvedContent) &&
+      resolvedContent.some((part) => part?.type === 'text' && hasNucleantPendingMarker(part.text)));
+
+  if (stillPending) {
+    return { settled: false, reason: 'job-not-resolvable' };
+  }
+
+  if (textChanged || contentChanged) {
+    await updateMessage(
+      { user: { id: user } },
+      {
+        messageId,
+        ...(textChanged ? { text: resolvedText } : {}),
+        ...(contentChanged ? { content: resolvedContent } : {}),
+      },
+      { context: 'nucleantPending.settlePendingJobById' },
+    );
+  }
+
+  await cache.delete(jobId);
+  return { settled: true, changed: textChanged || contentChanged };
+}
+
+module.exports = {
+  PENDING_MARKER,
+  hasNucleantPendingMarker,
+  resolveNucleantPendingMarkers,
+  resolveContentParts,
+  recordPendingJobMapping,
+  settlePendingJobById,
+};

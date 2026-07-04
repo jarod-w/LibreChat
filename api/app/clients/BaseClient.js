@@ -32,7 +32,10 @@ const {
   getFiles,
 } = require('~/models');
 const { getStrategyFunctions } = require('~/server/services/Files/strategies');
-const { resolveNucleantPendingMarkers } = require('~/server/services/nucleantPending');
+const {
+  recordPendingJobMapping,
+  resolveNucleantPendingMarkers,
+} = require('~/server/services/nucleantPending');
 const { checkBalance } = require('~/models/balanceMethods');
 const { truncateToolCallOutputs } = require('./prompts');
 const TextStream = require('./TextStream');
@@ -979,6 +982,14 @@ class BaseClient {
       },
       { context: 'api/app/clients/BaseClient.js - saveMessageToDatabase #saveMessage' },
     );
+
+    await recordPendingJobMapping({
+      text: resolvedText,
+      content: message.content,
+      conversationId: message.conversationId,
+      messageId: message.messageId,
+      user,
+    });
 
     if (this.skipSaveConvo) {
       return { message: savedMessage };
