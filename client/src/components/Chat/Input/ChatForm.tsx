@@ -19,6 +19,7 @@ import {
   useSubmitMessage,
   useFocusChatEffect,
 } from '~/hooks';
+import { countUnfilledPlaceholders } from '~/components/Chat/Intent/promptTemplates';
 import { mainTextareaId, BadgeItem } from '~/common';
 import AttachFileChat from './Files/AttachFileChat';
 import FileFormChat from './Files/FileFormChat';
@@ -161,6 +162,10 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
   });
 
   const textValue = useWatch({ control: methods.control, name: 'text' });
+  const unfilledPlaceholderCount = useMemo(
+    () => countUnfilledPlaceholders(textValue ?? ''),
+    [textValue],
+  );
 
   useEffect(() => {
     if (textAreaRef.current) {
@@ -353,6 +358,16 @@ const ChatForm = memo(({ index = 0 }: { index?: number }) => {
                 )}
               </div>
             </div>
+            {unfilledPlaceholderCount > 0 && (
+              <div
+                className={cn(
+                  'px-4 pb-2 text-xs text-text-tertiary',
+                  isRTL ? 'text-right' : 'text-left',
+                )}
+              >
+                {localize('com_intent_prefill_unfilled_hint', { 0: unfilledPlaceholderCount })}
+              </div>
+            )}
             {TextToSpeech && automaticPlayback && <StreamAudio index={index} />}
           </div>
         </div>

@@ -1,8 +1,9 @@
 import debounce from 'lodash/debounce';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import type { TEndpointOption } from 'librechat-data-provider';
 import type { KeyboardEvent } from 'react';
+import type { IntentPromptContext } from '~/components/Chat/Intent/promptTemplates';
 import {
   forceResize,
   insertTextAtCursor,
@@ -10,14 +11,17 @@ import {
   getEntity,
   checkIfScrollable,
 } from '~/utils';
+import { getIntentByKey } from '~/components/Chat/Intent/constants';
+import { buildIntentPrompt } from '~/components/Chat/Intent/promptTemplates';
 import { useAssistantsMapContext } from '~/Providers/AssistantsMapContext';
 import { useAgentsMapContext } from '~/Providers/AgentsMapContext';
+import { useProfileProductsQuery } from '~/data-provider/Profile';
 import useGetSender from '~/hooks/Conversations/useGetSender';
 import useFileHandling from '~/hooks/Files/useFileHandling';
 import { useInteractionHealthCheck } from '~/data-provider';
+import { useChatFormContext } from '~/Providers';
 import { useChatContext } from '~/Providers/ChatContext';
 import { globalAudioId } from '~/common';
-import { getIntentByKey } from '~/components/Chat/Intent/constants';
 import { useLocalize } from '~/hooks';
 import store from '~/store';
 
@@ -46,7 +50,33 @@ export default function useTextarea({
   const { index, conversation, isSubmitting, filesLoading, setFilesLoading } = useChatContext();
   const latestMessage = useRecoilValue(store.latestMessageFamily(index));
   const [activePrompt, setActivePrompt] = useRecoilState(store.activePromptByIndex(index));
+  const methods = useChatFormContext();
   const activeIntent = useRecoilValue(store.activeIntent);
+  const activeIntentFunctions = useRecoilValue(store.activeIntentFunctions);
+  const activeBrandId = useRecoilValue(store.activeBrandId);
+  const activeProductId = useRecoilValue(store.activeProductId);
+  const activeProductName = useRecoilValue(store.activeProductName);
+  const activeBrandName = useRecoilValue(store.activeBrandName);
+  const lastInjectedIntentPromptRef = useRef<string | null>(null);
+
+  const { data: products } = useProfileProductsQuery(activeBrandId, {
+    enabled: activeBrandId != null && activeIntent != null,
+  });
+
+  const intentPromptContext = useMemo<IntentPromptContext>(() => {
+    const product =
+      products?.find((p) => p.id === activeProductId) ??
+      products?.find((p) => p.is_primary) ??
+      products?.[0];
+    const sellingPoints = product?.product_attributes?.length
+      ? product.product_attributes.join('、')
+      : undefined;
+    return {
+      productName: activeProductName ?? product?.product_name ?? activeBrandName ?? undefined,
+      sellingPoints,
+      targetCustomers: product?.target_customers ?? undefined,
+    };
+  }, [products, activeProductId, activeProductName, activeBrandName]);
 
   const { endpoint = '' } = conversation || {};
   const { entity, isAgent, isAssistant } = getEntity({
@@ -69,6 +99,40 @@ export default function useTextarea({
       setActivePrompt(undefined);
     }
   }, [activePrompt, setActivePrompt, textAreaRef]);
+
+  useEffect(() => {
+    const el = textAreaRef.current;
+    if (!el) {
+      return;
+    }
+
+    if (activeIntent == null) {
+      if (
+        lastInjectedIntentPromptRef.current != null &&
+        el.value === lastInjectedIntentPromptRef.current
+      ) {
+        methods.setValue('text', '', { shouldValidate: true });
+        forceResize(el);
+      }
+      lastInjectedIntentPromptRef.current = null;
+      return;
+    }
+
+    const nextPrompt = buildIntentPrompt(activeIntent, activeIntentFunctions, intentPromptContext);
+    if (nextPrompt == null || el.value === nextPrompt) {
+      lastInjectedIntentPromptRef.current = nextPrompt ?? lastInjectedIntentPromptRef.current;
+      return;
+    }
+
+    const isClean = el.value === '' || el.value === lastInjectedIntentPromptRef.current;
+    if (!isClean) {
+      return;
+    }
+
+    methods.setValue('text', nextPrompt, { shouldValidate: true });
+    forceResize(el);
+    lastInjectedIntentPromptRef.current = nextPrompt;
+  }, [activeIntent, activeIntentFunctions, intentPromptContext, methods, textAreaRef]);
 
   useEffect(() => {
     const currentValue = textAreaRef.current?.value ?? '';

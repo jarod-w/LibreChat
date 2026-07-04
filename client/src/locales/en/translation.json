@@ -1622,6 +1622,7 @@
   "com_intent_fn_trust_proof": "Trust & Proof",
   "com_intent_fn_repurchase_retention": "Repurchase & Retention",
   "com_intent_fn_referral_viral": "Referral & Virality",
+  "com_intent_prefill_unfilled_hint": "{{0}} field(s) still marked 【填写:…】 to fill in — you can still send as is.",
   "com_execspeed_title": "Execution Speed · This round's content plan",
   "com_execspeed_subtitle": "Fill a few facts and the system recommends what to create this round, with a 14-day battle plan.",
   "com_execspeed_step_facts": "Facts",
