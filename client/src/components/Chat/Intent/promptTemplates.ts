@@ -43,7 +43,7 @@ const INTENT_TEMPLATES: Record<string, IntentTemplate> = {
   repurchase_script: {
     intro: (p) => `请为${p}撰写一组「复购话术」,用于社群 / 私信 / 到店场景触达老客。`,
     output:
-      '按老客唤醒场景给出 3-5 条可直接发送的话术,每条注明触发场景、复购理由与下一步行动。',
+      '按 talk_scripts 结构输出 ≥3 条话术:每条含 scene_name(如老客唤醒/会员复购券/周期提醒)、trigger(触发时机)、script(可直接发送正文);未确认优惠用【待确认】占位。',
   },
   product_detail_page: {
     intro: (p) => `请为${p}撰写「商品详情页」文案,用于电商 / 小程序商详。`,
@@ -92,7 +92,7 @@ const INTENT_TEMPLATES: Record<string, IntentTemplate> = {
   referral_script: {
     intro: (p) => `请为${p}撰写一组「转介绍话术」,激励老客带新客。`,
     output:
-      '转介绍邀请话术 + 利益点说明 + 老客可直接转发给好友的文案 + 社群裂变引导语。',
+      '按 talk_scripts 结构输出 ≥3 条:scene_name(如老带新邀请/晒单引导/社群裂变)、trigger(渠道场景)、script(可转发正文);KOC 场景可附 koc_brief;遵守转介绍红线(无现金返利/不拍人头/不分销层级)。',
   },
 };
 
@@ -109,7 +109,7 @@ const FUNCTION_DIRECTIVES: Record<string, string> = {
   repurchase_retention:
     '复购留存:强化记忆点与再次到店/下单理由,话术适合老客语境,避免像拉新广告。',
   referral_viral:
-    '转介绍裂变:设计可分享的钩子与双方利益点,给出老客一键转发的短文案。',
+    '转介绍裂变:设计可分享的钩子与双方利益点(非现金返利),给出老客一键转发的短文案。',
 };
 
 /**
