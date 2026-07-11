@@ -108,7 +108,7 @@ export const router = createBrowserRouter(
           children: [
             {
               index: true,
-              element: <Navigate to="/c/new" replace={true} />,
+              element: <Navigate to="/execution-speed" replace={true} />,
             },
             {
               path: 'c/:conversationId?',
