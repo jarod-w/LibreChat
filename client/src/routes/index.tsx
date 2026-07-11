@@ -11,6 +11,7 @@ import {
 import { MarketplaceProvider } from '~/components/Agents/MarketplaceContext';
 import AgentMarketplace from '~/components/Agents/Marketplace';
 import { ExecutionSpeedWizard } from '~/components/ExecutionSpeed';
+import { OutputWorkspace } from '~/components/ExecutionSpeed/Output';
 import { OAuthSuccess, OAuthError } from '~/components/OAuth';
 import { OnboardingWizard } from '~/components/Onboarding';
 import { AuthContextProvider } from '~/hooks/AuthContext';
@@ -116,6 +117,10 @@ export const router = createBrowserRouter(
             {
               path: 'execution-speed',
               element: <ExecutionSpeedWizard />,
+            },
+            {
+              path: 'execution-speed/output/:conversationId',
+              element: <OutputWorkspace />,
             },
             {
               path: 'search',

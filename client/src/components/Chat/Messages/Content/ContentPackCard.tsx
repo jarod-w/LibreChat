@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Copy, Check, CalendarDays } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronDown, ChevronRight, Copy, Check, CalendarDays, LayoutGrid } from 'lucide-react';
 import type { KotlerResultPack, KotlerResultPiece } from 'librechat-data-provider';
 import { STATUS_BADGES } from '~/components/ExecutionSpeed/constants';
 import { useLocalize } from '~/hooks';
@@ -129,11 +130,14 @@ function PieceSection({
 export default function ContentPackCard({
   pack,
   isCreatedByUser,
+  conversationId,
 }: {
   pack: KotlerResultPack;
   isCreatedByUser: boolean;
+  conversationId?: string | null;
 }) {
   const localize = useLocalize();
+  const navigate = useNavigate();
   const [battleOpen, setBattleOpen] = useState(true);
   const okPieces = pack.pieces.filter((p) => p.error == null);
   const placeholderTotal = pack.pieces.reduce((sum, p) => sum + p.placeholders.length, 0);
@@ -158,6 +162,16 @@ export default function ContentPackCard({
             <span className="rounded-full border border-amber-400/60 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
               ⚠ {localize('com_execspeed_placeholders_count', { 0: placeholderTotal })}
             </span>
+          )}
+          {conversationId != null && conversationId !== '' && (
+            <button
+              type="button"
+              onClick={() => navigate(`/execution-speed/output/${conversationId}`)}
+              className="flex items-center gap-1 rounded-full bg-green-600 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-green-700"
+            >
+              <LayoutGrid className="h-3 w-3" />
+              {localize('com_execspeed_output_open_workspace')}
+            </button>
           )}
         </div>
 

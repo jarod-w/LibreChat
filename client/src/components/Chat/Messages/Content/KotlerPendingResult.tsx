@@ -68,12 +68,12 @@ export default function KotlerPendingResult({ jobId, pendingMessage, isCreatedBy
     return (
       <Container>
         <div className="flex flex-col gap-1.5 py-1">
-          <div className="flex items-center gap-2 text-sm text-token-text-secondary">
+          <div className="text-token-text-secondary flex items-center gap-2 text-sm">
             <Spinner className="h-4 w-4 animate-spin" />
             <span>{msg}</span>
           </div>
           {progress != null && progress.total > 0 && (
-            <div className="flex items-center gap-2 pl-6 text-xs text-token-text-secondary">
+            <div className="text-token-text-secondary flex items-center gap-2 pl-6 text-xs">
               <span className="font-medium tabular-nums">
                 {progress.done}/{progress.total}
               </span>
@@ -83,7 +83,7 @@ export default function KotlerPendingResult({ jobId, pendingMessage, isCreatedBy
                 </span>
               )}
               <span
-                className="h-1 flex-1 max-w-40 overflow-hidden rounded-full bg-surface-tertiary"
+                className="h-1 max-w-40 flex-1 overflow-hidden rounded-full bg-surface-tertiary"
                 role="progressbar"
                 aria-valuenow={progress.done}
                 aria-valuemax={progress.total}
@@ -115,7 +115,13 @@ export default function KotlerPendingResult({ jobId, pendingMessage, isCreatedBy
   if (data.status === 'done') {
     // 执行速内容包:优先结构化卡片(result_pack),无则回退合并 Markdown(向后兼容)
     if (data.result_pack != null && data.result_pack.pieces.length > 0) {
-      return <ContentPackCard pack={data.result_pack} isCreatedByUser={isCreatedByUser} />;
+      return (
+        <ContentPackCard
+          pack={data.result_pack}
+          isCreatedByUser={isCreatedByUser}
+          conversationId={conversationId}
+        />
+      );
     }
     if (!data.result) {
       return (
