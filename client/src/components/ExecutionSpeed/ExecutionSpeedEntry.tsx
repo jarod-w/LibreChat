@@ -1,20 +1,19 @@
-import { useNavigate } from 'react-router-dom';
 import { Zap } from 'lucide-react';
 import { useLocalize } from '~/hooks';
 
 /**
  * 执行速落地页入口卡:与意图选择器并存 —— 意图选择器是「我已知道要哪一件」的快路径,
  * 执行速是「帮我规划本轮」的引导路径。仅落地态渲染(挂点见 ChatView)。
+ * 点击整页跳入独立 Studio SPA(/studio/,同源;见 kotlerapi/markdown/nucleant_studio_frontend.design.md §3)。
  */
 export default function ExecutionSpeedEntry() {
-  const navigate = useNavigate();
   const localize = useLocalize();
 
   return (
     <div className="mx-auto mt-2 w-full max-w-3xl px-2">
       <button
         type="button"
-        onClick={() => navigate('/execution-speed')}
+        onClick={() => window.location.assign('/studio/')}
         className="flex w-full items-center gap-3 rounded-xl border border-border-light bg-surface-secondary px-4 py-2.5 text-left transition-colors hover:border-green-500/60 hover:bg-surface-tertiary"
         data-testid="es-entry"
       >
