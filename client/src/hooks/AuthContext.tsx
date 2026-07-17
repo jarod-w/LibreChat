@@ -26,7 +26,7 @@ import {
   useRefreshTokenMutation,
 } from '~/data-provider';
 import { TAuthConfig, TUserContext, TAuthContext, TResError } from '~/common';
-import { SESSION_KEY, isSafeRedirect, getPostLoginRedirect } from '~/utils';
+import { SESSION_KEY, isSafeRedirect, getPostLoginRedirect, isExternalSpaPath } from '~/utils';
 import useTimeout from './useTimeout';
 import store from '~/store';
 
@@ -79,6 +79,13 @@ const AuthContextProvider = ({
           return;
         }
 
+        // Studio is a separate same-origin SPA outside this router — reach it with a full-page
+        // load so nginx serves it; navigate() would only search this app's own routes.
+        if (isExternalSpaPath(finalRedirect)) {
+          window.location.assign(finalRedirect);
+          return;
+        }
+
         navigate(finalRedirect, { replace: true });
       }, 50),
     [navigate, setUser],
@@ -93,7 +100,7 @@ const AuthContextProvider = ({
         return;
       }
       setError(undefined);
-      setUserContext({ token, isAuthenticated: true, user, redirect: '/c/new' });
+      setUserContext({ token, isAuthenticated: true, user, redirect: '/studio/' });
     },
     onError: (error: TResError | unknown) => {
       const resError = error as TResError;

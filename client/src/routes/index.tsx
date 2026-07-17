@@ -1,4 +1,5 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { createBrowserRouter, Outlet } from 'react-router-dom';
 import {
   Login,
   VerifyEmail,
@@ -30,6 +31,18 @@ const AuthLayout = () => (
     <ApiErrorWatcher />
   </AuthContextProvider>
 );
+
+/**
+ * Studio is a separate same-origin SPA (nginx mounts it at /studio/) outside this router.
+ * The index route sends users there with a full-page load; client-side navigate()/<Navigate>
+ * would only match this app's own routes and never reach the Studio SPA.
+ */
+const StudioRedirect = () => {
+  useEffect(() => {
+    window.location.replace('/studio/');
+  }, []);
+  return null;
+};
 
 const baseEl = document.querySelector('base');
 const baseHref = baseEl?.getAttribute('href') || '/';
@@ -108,7 +121,7 @@ export const router = createBrowserRouter(
           children: [
             {
               index: true,
-              element: <Navigate to="/c/new" replace={true} />,
+              element: <StudioRedirect />,
             },
             {
               path: 'c/:conversationId?',

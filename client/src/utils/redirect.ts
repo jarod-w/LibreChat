@@ -14,6 +14,16 @@ export function isSafeRedirect(url: string): boolean {
 }
 
 /**
+ * True for paths served by a separate same-origin SPA (Nucleant Studio, mounted at `/studio/`)
+ * that lives outside this app's react-router. Such targets must be reached via a full-page load
+ * (`window.location`), not client-side `navigate()`, which only matches this router's own routes.
+ */
+export function isExternalSpaPath(url: string): boolean {
+  const path = url.split('?')[0].split('#')[0];
+  return path === '/studio' || path.startsWith('/studio/');
+}
+
+/**
  * Resolves the post-login redirect from URL params and sessionStorage,
  * cleans up both sources, and returns the validated target (or null).
  */
